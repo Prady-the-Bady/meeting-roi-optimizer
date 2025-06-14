@@ -2,7 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Users, Clock } from "lucide-react";
 
-const HeroSection = () => {
+interface HeroSectionProps {
+  onStartFreeTrial: () => void;
+  onWatchDemo: () => void;
+}
+
+const HeroSection = ({ onStartFreeTrial, onWatchDemo }: HeroSectionProps) => {
   return (
     <section className="py-20 px-4">
       <div className="container mx-auto text-center">
@@ -17,10 +22,19 @@ const HeroSection = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 px-8">
+          <Button 
+            size="lg" 
+            className="bg-blue-600 hover:bg-blue-700 px-8"
+            onClick={onStartFreeTrial}
+          >
             Start Free Trial
           </Button>
-          <Button size="lg" variant="outline" className="px-8">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="px-8"
+            onClick={onWatchDemo}
+          >
             Watch Demo
           </Button>
         </div>

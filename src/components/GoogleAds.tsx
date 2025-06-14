@@ -22,20 +22,29 @@ const GoogleAds = ({
   
   useEffect(() => {
     // Load AdSense script if not already loaded
-    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+    const existingScript = document.querySelector(`script[src*="adsbygoogle.js"]`);
+    if (!existingScript) {
       const script = document.createElement('script');
       script.async = true;
       script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`;
       script.crossOrigin = 'anonymous';
+      script.onload = () => {
+        try {
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+        } catch (error) {
+          console.log('AdSense initialization error:', error);
+        }
+      };
       document.head.appendChild(script);
-    }
-
-    // Initialize the ad after script loads
-    try {
-      // @ts-ignore
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (error) {
-      console.log('AdSense error:', error);
+    } else {
+      // Script already exists, just push the ad
+      try {
+        // @ts-ignore
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        console.log('AdSense error:', error);
+      }
     }
   }, [publisherId]);
 
@@ -51,18 +60,23 @@ const GoogleAds = ({
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2">
             <Zap className="h-4 w-4 text-yellow-600" />
-            <span className="text-sm font-medium text-yellow-800">Advertisement</span>
+            <span className="text-sm font-medium text-yellow-800">Sponsored Content</span>
           </div>
           <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-yellow-600">
             <X className="h-3 w-3" />
           </Button>
         </div>
         
-        {/* Real AdSense Ad */}
-        <div className="bg-white border border-yellow-200 rounded-lg overflow-hidden min-h-[120px] flex items-center justify-center">
+        {/* Google AdSense Ad Unit */}
+        <div className="bg-white border border-yellow-200 rounded-lg overflow-hidden min-h-[250px] flex items-center justify-center">
           <ins 
             className="adsbygoogle"
-            style={{ display: 'block', width: '100%', height: '120px' }}
+            style={{ 
+              display: 'block', 
+              width: '100%', 
+              height: '250px',
+              backgroundColor: '#f8f9fa'
+            }}
             data-ad-client={publisherId}
             data-ad-slot={adSlot}
             data-ad-format="auto"

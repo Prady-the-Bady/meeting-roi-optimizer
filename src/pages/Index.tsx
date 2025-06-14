@@ -20,6 +20,15 @@ const Index = () => {
     }
   }, [user, loading, navigate]);
 
+  const handleStartFreeTrial = () => {
+    navigate("/auth");
+  };
+
+  const handleWatchDemo = () => {
+    // You can replace this with actual demo video URL or modal
+    window.open("https://www.youtube.com/watch?v=demo-video", "_blank");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -43,7 +52,7 @@ const Index = () => {
             </Button>
             <Button 
               className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => navigate("/auth")}
+              onClick={handleStartFreeTrial}
             >
               Get Started Free
             </Button>
@@ -51,12 +60,19 @@ const Index = () => {
         </div>
       </nav>
 
-      <HeroSection />
+      <HeroSection onStartFreeTrial={handleStartFreeTrial} onWatchDemo={handleWatchDemo} />
       
-      {/* Google Ads for demo purposes */}
+      {/* Google Ads for advertisement section */}
       <section className="py-8 bg-gray-50">
         <div className="container mx-auto px-4">
-          <GoogleAds className="max-w-4xl mx-auto" />
+          <div className="text-center mb-6">
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">Sponsored</h3>
+          </div>
+          <GoogleAds 
+            className="max-w-4xl mx-auto" 
+            showUpgradePrompt={false}
+            publisherId="ca-pub-1234567890123456"
+          />
         </div>
       </section>
 
@@ -73,7 +89,7 @@ const Index = () => {
             <Button 
               size="lg" 
               className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => navigate("/auth")}
+              onClick={handleStartFreeTrial}
             >
               Start Free Trial
             </Button>
@@ -118,7 +134,7 @@ const Index = () => {
                   <Button 
                     size="lg" 
                     className="bg-blue-600 hover:bg-blue-700"
-                    onClick={() => navigate("/auth")}
+                    onClick={handleStartFreeTrial}
                   >
                     Access Full Calculator
                   </Button>
@@ -129,7 +145,7 @@ const Index = () => {
         </div>
       </section>
 
-      <FeaturesSection />
+      <FeaturesSection onStartFreeTrial={handleStartFreeTrial} />
       <PricingSection />
 
       {/* CTA Section */}
@@ -144,7 +160,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="bg-white text-blue-600 hover:bg-gray-100"
-            onClick={() => navigate("/auth")}
+            onClick={handleStartFreeTrial}
           >
             Start Free Trial
           </Button>
