@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +13,12 @@ import {
   Star,
   ArrowRight,
   Target,
-  Sparkles
+  Sparkles,
+  Eye,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface OverviewSectionProps {
   onUpgrade: (plan: 'premium' | 'enterprise') => void;
@@ -27,6 +29,7 @@ interface OverviewSectionProps {
 
 export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, onNavigate }: OverviewSectionProps) {
   const { subscription } = useAuth();
+  const { toast } = useToast();
 
   const getSubscriptionBadge = () => {
     switch (subscription.tier) {
@@ -48,6 +51,23 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
   const handleAnalyticsClick = () => {
     if (onNavigate) {
       onNavigate('analytics');
+    }
+  };
+
+  const handleMeetingClick = (meetingName: string) => {
+    toast({
+      title: "📊 Meeting Details",
+      description: `Viewing details for "${meetingName}". This feature will show comprehensive meeting analytics.`,
+    });
+    
+    if (onNavigate) {
+      onNavigate('history');
+    }
+  };
+
+  const handleViewAllMeetings = () => {
+    if (onNavigate) {
+      onNavigate('history');
     }
   };
 
@@ -183,26 +203,46 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
         {/* Recent Activity */}
         <Card className="border-0 shadow-lg bg-white hover:shadow-xl transition-shadow duration-300">
           <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-xl">
-              <Clock className="h-5 w-5 mr-2 text-green-600" />
-              Recent Activity
+            <CardTitle className="flex items-center justify-between text-xl">
+              <div className="flex items-center">
+                <Clock className="h-5 w-5 mr-2 text-green-600" />
+                Recent Activity
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleViewAllMeetings}
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+              >
+                View All
+                <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
             </CardTitle>
             <CardDescription>Your latest meeting calculations</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {[
-                { name: "Product Planning", cost: "$420", time: "2 hours ago", participants: 8 },
-                { name: "Daily Standup", cost: "$85", time: "1 day ago", participants: 6 },
-                { name: "Client Review", cost: "$340", time: "3 days ago", participants: 4 },
+                { name: "Product Planning", cost: "$420", time: "2 hours ago", participants: 8, id: "1" },
+                { name: "Daily Standup", cost: "$85", time: "1 day ago", participants: 6, id: "2" },
+                { name: "Client Review", cost: "$340", time: "3 days ago", participants: 4, id: "3" },
               ].map((meeting, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                  <div>
-                    <p className="font-medium text-gray-900">{meeting.name}</p>
+                <div 
+                  key={meeting.id} 
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group"
+                  onClick={() => handleMeetingClick(meeting.name)}
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900 group-hover:text-blue-900">{meeting.name}</p>
                     <p className="text-sm text-gray-500">{meeting.time} • {meeting.participants} participants</p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-900">{meeting.cost}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className="font-semibold text-gray-900">{meeting.cost}</p>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Eye className="h-4 w-4 text-blue-600" />
+                    </div>
                   </div>
                 </div>
               ))}
