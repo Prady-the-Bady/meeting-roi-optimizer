@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -55,10 +56,10 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-6"></div>
+          <p className="text-gray-600 text-lg">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -226,31 +227,46 @@ const Dashboard = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <AppSidebar 
           activeSection={activeSection}
           onSectionChange={setActiveSection}
         />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center justify-between border-b px-6">
-            <div className="flex items-center gap-2">
-              <SidebarTrigger />
-              <div className="text-sm text-gray-600">Welcome, {user.email}</div>
+          <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white/80 backdrop-blur-sm px-6 shadow-sm">
+            <div className="flex items-center gap-3">
+              <SidebarTrigger className="hover:bg-blue-50 transition-colors" />
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="text-sm text-gray-600">
+                  Welcome back, <span className="font-medium text-gray-900">{user.email}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {subscription.tier !== 'free' && (
-                <Button variant="outline" onClick={handleManageSubscription}>
+                <Button 
+                  variant="outline" 
+                  onClick={handleManageSubscription}
+                  className="hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800 transition-all duration-200"
+                >
                   Manage Subscription
                 </Button>
               )}
-              <Button variant="outline" onClick={signOut}>
+              <Button 
+                variant="outline" 
+                onClick={signOut}
+                className="hover:bg-red-50 border-red-200 text-red-700 hover:text-red-800 transition-all duration-200"
+              >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
               </Button>
             </div>
           </header>
-          <main className="flex-1 p-6">
-            {renderSection()}
+          <main className="flex-1 p-6 animate-fade-in">
+            <div className="max-w-7xl mx-auto">
+              {renderSection()}
+            </div>
           </main>
         </SidebarInset>
       </div>
