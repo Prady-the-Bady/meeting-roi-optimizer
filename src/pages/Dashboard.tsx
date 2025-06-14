@@ -72,32 +72,26 @@ const Dashboard = () => {
     }
   };
 
-  const hasAccess = (feature: string) => {
-    console.log('Checking access for:', feature, 'User tier:', subscription.tier);
-    switch (feature) {
-      case 'team':
-        return subscription.tier === 'enterprise';
-      case 'ai':
-      case 'analytics':
-        return subscription.tier === 'premium' || subscription.tier === 'enterprise';
-      case 'calculator':
-      case 'calendar':
-        return true;
-      default:
-        return subscription.tier !== 'free';
-    }
-  };
-
   const handleUpgrade = async (plan: 'premium' | 'enterprise') => {
     if (isUpgrading) return;
     
     setIsUpgrading(true);
     try {
+      console.log('Creating checkout session for plan:', plan);
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { plan }
       });
 
-      if (error) throw error;
+      console.log('Checkout response:', { data, error });
+
+      if (error) {
+        console.error('Checkout error details:', error);
+        throw error;
+      }
+
+      if (!data?.url) {
+        throw new Error('No checkout URL received');
+      }
 
       // Open Stripe checkout in a new tab
       window.open(data.url, '_blank');
@@ -128,6 +122,10 @@ const Dashboard = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const openPricingPage = () => {
+    navigate("/?section=pricing");
   };
 
   return (
@@ -162,7 +160,7 @@ const Dashboard = () => {
         {/* Google Ads for free users only */}
         {subscription.tier === 'free' && (
           <div className="mb-8">
-            <GoogleAds />
+            <GoogleAds showUpgradePrompt={true} onUpgradeClick={openPricingPage} />
           </div>
         )}
 
@@ -212,11 +210,11 @@ const Dashboard = () => {
           </Card>
 
           {/* Analytics - Premium/Enterprise only */}
-          <Card className={!hasAccess('analytics') ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+          <Card className={subscription.tier === 'free' ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Analytics</span>
-                {hasAccess('analytics') ? (
+                {subscription.tier !== 'free' ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <Lock className="h-4 w-4 text-yellow-500" />
@@ -227,20 +225,30 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {hasAccess('analytics') ? (
+              {subscription.tier !== 'free' ? (
                 <Button className="w-full">
                   <TrendingUp className="h-4 w-4 mr-2" />
                   View Analytics
                 </Button>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-yellow-700">Requires Premium or Enterprise</p>
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Get detailed analytics and insights about your meeting costs and efficiency patterns.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Cost trend analysis</li>
+                      <li>• Efficiency scoring</li>
+                      <li>• Meeting optimization tips</li>
+                    </ul>
+                  </div>
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700" 
                     onClick={() => handleUpgrade('premium')}
                     disabled={isUpgrading}
                   >
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
                   </Button>
                 </div>
               )}
@@ -248,11 +256,11 @@ const Dashboard = () => {
           </Card>
 
           {/* AI Insights - Premium/Enterprise only */}
-          <Card className={!hasAccess('ai') ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+          <Card className={subscription.tier === 'free' ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>AI Insights</span>
-                {hasAccess('ai') ? (
+                {subscription.tier !== 'free' ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <Lock className="h-4 w-4 text-yellow-500" />
@@ -263,20 +271,30 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {hasAccess('ai') ? (
+              {subscription.tier !== 'free' ? (
                 <Button className="w-full">
                   <Zap className="h-4 w-4 mr-2" />
                   View AI Insights
                 </Button>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-yellow-700">Requires Premium or Enterprise</p>
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Get AI-powered recommendations to optimize your meetings and reduce costs.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Smart cost optimization</li>
+                      <li>• Meeting efficiency analysis</li>
+                      <li>• Personalized recommendations</li>
+                    </ul>
+                  </div>
                   <Button 
                     className="w-full bg-blue-600 hover:bg-blue-700" 
                     onClick={() => handleUpgrade('premium')}
                     disabled={isUpgrading}
                   >
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
                   </Button>
                 </div>
               )}
@@ -284,11 +302,11 @@ const Dashboard = () => {
           </Card>
 
           {/* Team Management - Enterprise only */}
-          <Card className={!hasAccess('team') ? 'opacity-60 border-purple-200' : 'border-green-200'}>
+          <Card className={subscription.tier !== 'enterprise' ? 'opacity-60 border-purple-200' : 'border-green-200'}>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>Team Management</span>
-                {hasAccess('team') ? (
+                {subscription.tier === 'enterprise' ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <Lock className="h-4 w-4 text-purple-500" />
@@ -299,22 +317,32 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {hasAccess('team') ? (
+              {subscription.tier === 'enterprise' ? (
                 <Button className="w-full">
                   <Users className="h-4 w-4 mr-2" />
                   Manage Team
                 </Button>
               ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-purple-700 font-medium">Enterprise Only Feature</p>
-                  <p className="text-xs text-purple-600">$99/month - includes team collaboration</p>
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Collaborate with your team, share insights, and manage group meeting costs.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Team member management</li>
+                      <li>• Shared meeting insights</li>
+                      <li>• Collaborative cost tracking</li>
+                      <li>• Advanced team analytics</li>
+                    </ul>
+                  </div>
                   <Button 
                     className="w-full bg-purple-600 hover:bg-purple-700" 
                     onClick={() => handleUpgrade('enterprise')}
                     disabled={isUpgrading}
                   >
                     <Crown className="h-4 w-4 mr-2" />
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Enterprise'}
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Enterprise - $99/month'}
                   </Button>
                 </div>
               )}

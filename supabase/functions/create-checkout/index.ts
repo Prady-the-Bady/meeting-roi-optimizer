@@ -21,22 +21,39 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
+    // Check environment variables
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY");
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
-    const authHeader = req.headers.get("Authorization")!;
+    if (!supabaseUrl || !supabaseKey || !stripeKey) {
+      throw new Error("Missing required environment variables");
+    }
+
+    logStep("Environment variables verified");
+
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header provided");
+    }
+
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { plan } = await req.json();
+    const requestBody = await req.json();
+    const { plan } = requestBody;
     logStep("Plan requested", { plan });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    if (!plan || !['premium', 'enterprise'].includes(plan)) {
+      throw new Error("Invalid plan specified. Must be 'premium' or 'enterprise'");
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2023-10-16",
     });
 
@@ -65,9 +82,10 @@ serve(async (req) => {
         unit_amount: 9900, // $99.00
         recurring: { interval: "month" },
       };
-    } else {
-      throw new Error("Invalid plan selected");
     }
+
+    const origin = req.headers.get("origin") || "http://localhost:3000";
+    logStep("Creating checkout session", { origin, plan });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -79,11 +97,16 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${req.headers.get("origin")}/dashboard?success=true`,
-      cancel_url: `${req.headers.get("origin")}/dashboard?canceled=true`,
+      success_url: `${origin}/dashboard?success=true`,
+      cancel_url: `${origin}/dashboard?canceled=true`,
+      metadata: {
+        user_id: user.id,
+        user_email: user.email,
+        plan: plan,
+      },
     });
 
-    logStep("Checkout session created", { sessionId: session.id });
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -91,7 +114,7 @@ serve(async (req) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR", { message: errorMessage });
+    logStep("ERROR", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,

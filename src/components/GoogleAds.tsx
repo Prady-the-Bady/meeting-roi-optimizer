@@ -9,13 +9,15 @@ interface GoogleAdsProps {
   className?: string;
   showUpgradePrompt?: boolean;
   publisherId?: string;
+  onUpgradeClick?: () => void;
 }
 
 const GoogleAds = ({ 
   adSlot = "1234567890", 
   className = "", 
   showUpgradePrompt = true,
-  publisherId = "ca-pub-1234567890123456" // Replace with your actual AdSense Publisher ID
+  publisherId = "ca-pub-1234567890123456", // Replace with your actual AdSense Publisher ID
+  onUpgradeClick
 }: GoogleAdsProps) => {
   
   useEffect(() => {
@@ -36,6 +38,12 @@ const GoogleAds = ({
       console.log('AdSense error:', error);
     }
   }, [publisherId]);
+
+  const handleUpgradeClick = () => {
+    if (onUpgradeClick) {
+      onUpgradeClick();
+    }
+  };
 
   return (
     <Card className={`bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 ${className}`}>
@@ -67,7 +75,12 @@ const GoogleAds = ({
             <p className="text-xs text-yellow-700 mb-2">
               Remove ads and unlock premium features
             </p>
-            <Button size="sm" variant="outline" className="text-yellow-800 border-yellow-300">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="text-yellow-800 border-yellow-300 hover:bg-yellow-100"
+              onClick={handleUpgradeClick}
+            >
               Upgrade to Premium
             </Button>
           </div>
