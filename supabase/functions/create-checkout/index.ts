@@ -87,31 +87,52 @@ serve(async (req) => {
     const origin = req.headers.get("origin") || "http://localhost:3000";
     logStep("Creating checkout session", { origin, plan });
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: priceData,
-          quantity: 1,
+    try {
+      const session = await stripe.checkout.sessions.create({
+        customer: customerId,
+        customer_email: customerId ? undefined : user.email,
+        line_items: [
+          {
+            price_data: priceData,
+            quantity: 1,
+          },
+        ],
+        mode: "subscription",
+        success_url: `${origin}/dashboard?success=true`,
+        cancel_url: `${origin}/dashboard?canceled=true`,
+        metadata: {
+          user_id: user.id,
+          user_email: user.email,
+          plan: plan,
         },
-      ],
-      mode: "subscription",
-      success_url: `${origin}/dashboard?success=true`,
-      cancel_url: `${origin}/dashboard?canceled=true`,
-      metadata: {
-        user_id: user.id,
-        user_email: user.email,
-        plan: plan,
-      },
-    });
+      });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+      logStep("Checkout session created", { sessionId: session.id, url: session.url });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      return new Response(JSON.stringify({ url: session.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (stripeError: any) {
+      logStep("Stripe checkout error", { 
+        message: stripeError.message,
+        type: stripeError.type,
+        code: stripeError.code
+      });
+
+      // Check for specific Stripe configuration errors
+      if (stripeError.message.includes("account or business name")) {
+        return new Response(JSON.stringify({ 
+          error: "Stripe account setup incomplete. Please set your business name in Stripe Dashboard at https://dashboard.stripe.com/account",
+          stripeSetupRequired: true
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+
+      throw stripeError;
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage, stack: error instanceof Error ? error.stack : undefined });

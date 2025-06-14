@@ -86,6 +86,17 @@ const Dashboard = () => {
 
       if (error) {
         console.error('Checkout error details:', error);
+        
+        // Handle specific Stripe setup errors
+        if (data?.stripeSetupRequired) {
+          toast({
+            title: "Stripe Setup Required",
+            description: "Please complete your Stripe account setup first. Check the business name in your Stripe dashboard.",
+            variant: "destructive",
+          });
+          return;
+        }
+        
         throw error;
       }
 
@@ -241,6 +252,9 @@ const Dashboard = () => {
                       <li>• Cost trend analysis</li>
                       <li>• Efficiency scoring</li>
                       <li>• Meeting optimization tips</li>
+                      <li>• ROI tracking and reporting</li>
+                      <li>• Custom date range analysis</li>
+                      <li>• Meeting pattern insights</li>
                     </ul>
                   </div>
                   <Button 
@@ -287,6 +301,9 @@ const Dashboard = () => {
                       <li>• Smart cost optimization</li>
                       <li>• Meeting efficiency analysis</li>
                       <li>• Personalized recommendations</li>
+                      <li>• Automated meeting scoring</li>
+                      <li>• AI-driven insights dashboard</li>
+                      <li>• Predictive cost modeling</li>
                     </ul>
                   </div>
                   <Button 
@@ -334,6 +351,9 @@ const Dashboard = () => {
                       <li>• Shared meeting insights</li>
                       <li>• Collaborative cost tracking</li>
                       <li>• Advanced team analytics</li>
+                      <li>• Role-based permissions</li>
+                      <li>• Multi-department reporting</li>
+                      <li>• Enterprise-grade security</li>
                     </ul>
                   </div>
                   <Button 
@@ -343,6 +363,147 @@ const Dashboard = () => {
                   >
                     <Crown className="h-4 w-4 mr-2" />
                     {isUpgrading ? 'Processing...' : 'Upgrade to Enterprise - $99/month'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Calendar Integration - Premium/Enterprise */}
+          <Card className={subscription.tier === 'free' ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Calendar Integration</span>
+                {subscription.tier !== 'free' ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-yellow-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Sync with Google Calendar, Outlook, and more
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {subscription.tier !== 'free' ? (
+                <Button className="w-full">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Connect Calendar
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Automatically import meeting data from your calendar apps.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Google Calendar sync</li>
+                      <li>• Outlook integration</li>
+                      <li>• Automatic cost calculation</li>
+                      <li>• Meeting reminders</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleUpgrade('premium')}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Integrations - Premium/Enterprise */}
+          <Card className={subscription.tier === 'free' ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Integrations</span>
+                {subscription.tier !== 'free' ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-yellow-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Connect with Slack, Teams, and other tools
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {subscription.tier !== 'free' ? (
+                <Button className="w-full">
+                  <Zap className="h-4 w-4 mr-2" />
+                  View Integrations
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Integrate with your favorite productivity tools.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Slack notifications</li>
+                      <li>• Microsoft Teams</li>
+                      <li>• Zoom integration</li>
+                      <li>• API access</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleUpgrade('premium')}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Reports - Premium/Enterprise */}
+          <Card className={subscription.tier === 'free' ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Advanced Reports</span>
+                {subscription.tier !== 'free' ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-yellow-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Detailed reporting and data exports
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {subscription.tier !== 'free' ? (
+                <Button className="w-full">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  Generate Reports
+                </Button>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg border border-dashed">
+                    <Lock className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-600 mb-3">
+                      Generate comprehensive reports for stakeholders.
+                    </p>
+                    <ul className="text-xs text-gray-500 space-y-1 mb-3">
+                      <li>• Executive summaries</li>
+                      <li>• Cost breakdown reports</li>
+                      <li>• Custom date ranges</li>
+                      <li>• PDF/Excel exports</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleUpgrade('premium')}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
                   </Button>
                 </div>
               )}
