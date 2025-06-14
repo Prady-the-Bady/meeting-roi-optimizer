@@ -1,4 +1,3 @@
-
 import { Calculator, TrendingUp, Zap, Users, Clock, FileBarChart, Crown, Settings, Home } from "lucide-react";
 import {
   Sidebar,
@@ -20,10 +19,18 @@ interface AppSidebarProps {
   onSectionChange: (section: string) => void;
 }
 
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: any;
+  available: boolean;
+  premium?: boolean;
+}
+
 export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) {
   const { subscription } = useAuth();
 
-  const mainItems = [
+  const mainItems: MenuItem[] = [
     {
       id: "overview",
       title: "Overview",
@@ -38,7 +45,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     },
   ];
 
-  const analyticsItems = [
+  const analyticsItems: MenuItem[] = [
     {
       id: "analytics",
       title: "Analytics",
@@ -55,7 +62,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     },
   ];
 
-  const aiItems = [
+  const aiItems: MenuItem[] = [
     {
       id: "ai-insights",
       title: "AI Insights",
@@ -65,7 +72,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     },
   ];
 
-  const collaborationItems = [
+  const collaborationItems: MenuItem[] = [
     {
       id: "team",
       title: "Team Management",
@@ -89,7 +96,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     },
   ];
 
-  const renderMenuItems = (items: typeof mainItems) => (
+  const renderMenuItems = (items: MenuItem[]) => (
     <SidebarMenu>
       {items.map((item) => (
         <SidebarMenuItem key={item.id}>
