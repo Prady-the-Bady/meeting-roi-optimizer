@@ -24,8 +24,8 @@ const FeaturesSection = ({ onStartFreeTrial }: FeaturesSectionProps) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <Calculator className="h-6 w-6 text-blue-600" />
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <Calculator className="h-6 w-6 text-purple-600" />
               </div>
               <CardTitle>Real-time Cost Calculator</CardTitle>
               <CardDescription>
@@ -98,7 +98,7 @@ const FeaturesSection = ({ onStartFreeTrial }: FeaturesSectionProps) => {
         <div className="text-center">
           <Button 
             size="lg" 
-            className="bg-blue-600 hover:bg-blue-700 px-8"
+            className="bg-purple-600 hover:bg-purple-700 px-8"
             onClick={onStartFreeTrial}
           >
             Start Your Free Trial Today

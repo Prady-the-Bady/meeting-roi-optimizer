@@ -1,4 +1,5 @@
-import { Calculator, TrendingUp, Zap, Users, Clock, FileBarChart, Crown, Settings, Home, History } from "lucide-react";
+
+import { Scissors, TrendingUp, Zap, Users, Clock, FileBarChart, Crown, Settings, Home, History } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -40,7 +41,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     {
       id: "calculator",
       title: "Meeting Calculator",
-      icon: Calculator,
+      icon: Scissors,
       available: true,
     },
     {
@@ -127,8 +128,8 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
     <Sidebar>
       <SidebarHeader className="p-4">
         <div className="flex items-center space-x-2">
-          <Calculator className="h-6 w-6 text-blue-600" />
-          <span className="text-lg font-bold">MeetingROI Pro</span>
+          <Scissors className="h-6 w-6 text-purple-600" />
+          <span className="text-lg font-bold">CostCut AI</span>
         </div>
         <div className="mt-2">
           {subscription.tier === 'enterprise' && (
@@ -138,7 +139,7 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
             </Badge>
           )}
           {subscription.tier === 'premium' && (
-            <Badge className="bg-blue-100 text-blue-800">
+            <Badge className="bg-purple-100 text-purple-800">
               <Zap className="h-3 w-3 mr-1" />
               Premium
             </Badge>
