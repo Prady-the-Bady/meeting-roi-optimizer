@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,9 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { OverviewSection } from "@/components/sections/OverviewSection";
 import { AnalyticsSection } from "@/components/sections/AnalyticsSection";
 import { AIInsightsSection } from "@/components/sections/AIInsightsSection";
+import { IntegrationsSection } from "@/components/sections/IntegrationsSection";
+import { MeetingHistorySection } from "@/components/sections/MeetingHistorySection";
+import { TeamManagementSection } from "@/components/sections/TeamManagementSection";
 import PremiumFeatures from "@/components/PremiumFeatures";
 
 const Dashboard = () => {
@@ -164,19 +166,10 @@ const Dashboard = () => {
         );
       case "team":
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Team Management</h1>
-              <p className="text-gray-600 mt-2">Manage team members and collaboration</p>
-            </div>
-            {subscription.tier === 'enterprise' ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Team management features coming soon!</p>
-              </div>
-            ) : (
-              <PremiumFeatures />
-            )}
-          </div>
+          <TeamManagementSection 
+            onUpgrade={handleUpgrade}
+            isUpgrading={isUpgrading}
+          />
         );
       case "calendar":
         return (
@@ -196,19 +189,10 @@ const Dashboard = () => {
         );
       case "integrations":
         return (
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
-              <p className="text-gray-600 mt-2">Connect with Slack, Teams, and other tools</p>
-            </div>
-            {subscription.tier !== 'free' ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Integration features coming soon!</p>
-              </div>
-            ) : (
-              <PremiumFeatures />
-            )}
-          </div>
+          <IntegrationsSection 
+            onUpgrade={handleUpgrade}
+            isUpgrading={isUpgrading}
+          />
         );
       case "reports":
         return (
@@ -225,6 +209,13 @@ const Dashboard = () => {
               <PremiumFeatures />
             )}
           </div>
+        );
+      case "history":
+        return (
+          <MeetingHistorySection 
+            onUpgrade={handleUpgrade}
+            isUpgrading={isUpgrading}
+          />
         );
       default:
         return (

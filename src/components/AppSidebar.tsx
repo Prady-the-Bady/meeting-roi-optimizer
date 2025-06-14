@@ -1,4 +1,4 @@
-import { Calculator, TrendingUp, Zap, Users, Clock, FileBarChart, Crown, Settings, Home } from "lucide-react";
+import { Calculator, TrendingUp, Zap, Users, Clock, FileBarChart, Crown, Settings, Home, History } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -42,6 +42,13 @@ export function AppSidebar({ activeSection, onSectionChange }: AppSidebarProps) 
       title: "Meeting Calculator",
       icon: Calculator,
       available: true,
+    },
+    {
+      id: "history",
+      title: "Meeting History",
+      icon: History,
+      available: subscription.tier !== 'free',
+      premium: subscription.tier === 'free',
     },
   ];
 
