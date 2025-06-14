@@ -13,10 +13,10 @@ interface GoogleAdsProps {
 }
 
 const GoogleAds = ({ 
-  adSlot = "1234567890", 
+  adSlot = "5858753720", 
   className = "", 
   showUpgradePrompt = true,
-  publisherId = "ca-pub-1234567890123456", // Replace with your actual AdSense Publisher ID
+  publisherId = "ca-pub-1117144804884445",
   onUpgradeClick
 }: GoogleAdsProps) => {
   
