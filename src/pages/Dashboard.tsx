@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calculator, LogOut, Crown, Users, Zap, TrendingUp, Lock } from "lucide-react";
+import { Calculator, LogOut, Crown, Users, Zap, TrendingUp, Lock, CheckCircle } from "lucide-react";
 import MeetingCalculator from "@/components/MeetingCalculator";
 import GoogleAds from "@/components/GoogleAds";
 import { useEffect, useState } from "react";
@@ -33,12 +33,16 @@ const Dashboard = () => {
       });
       // Refresh subscription status
       refreshSubscription();
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/dashboard");
     } else if (urlParams.get('canceled') === 'true') {
       toast({
         title: "Payment Canceled",
         description: "Your subscription was not activated.",
         variant: "destructive",
       });
+      // Clean up URL
+      window.history.replaceState({}, document.title, "/dashboard");
     }
   }, [toast, refreshSubscription]);
 
@@ -69,6 +73,7 @@ const Dashboard = () => {
   };
 
   const hasAccess = (feature: string) => {
+    console.log('Checking access for:', feature, 'User tier:', subscription.tier);
     switch (feature) {
       case 'team':
         return subscription.tier === 'enterprise';
@@ -79,7 +84,7 @@ const Dashboard = () => {
       case 'calendar':
         return true;
       default:
-        return false;
+        return subscription.tier !== 'free';
     }
   };
 
@@ -154,110 +159,12 @@ const Dashboard = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Google Ads for free users */}
+        {/* Google Ads for free users only */}
         {subscription.tier === 'free' && (
           <div className="mb-8">
             <GoogleAds />
           </div>
         )}
-
-        {/* Feature Access Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className={!hasAccess('analytics') ? 'opacity-60' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Analytics</span>
-                {!hasAccess('analytics') && <Lock className="h-4 w-4 text-gray-400" />}
-              </CardTitle>
-              <CardDescription>
-                Advanced meeting cost analytics and insights
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {hasAccess('analytics') ? (
-                <Button className="w-full">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  View Analytics
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Requires Premium or Enterprise</p>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => handleUpgrade('premium')}
-                    disabled={isUpgrading}
-                  >
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className={!hasAccess('ai') ? 'opacity-60' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>AI Insights</span>
-                {!hasAccess('ai') && <Lock className="h-4 w-4 text-gray-400" />}
-              </CardTitle>
-              <CardDescription>
-                AI-powered meeting optimization recommendations
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {hasAccess('ai') ? (
-                <Button className="w-full">
-                  <Zap className="h-4 w-4 mr-2" />
-                  View AI Insights
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Requires Premium or Enterprise</p>
-                  <Button 
-                    className="w-full" 
-                    onClick={() => handleUpgrade('premium')}
-                    disabled={isUpgrading}
-                  >
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className={!hasAccess('team') ? 'opacity-60' : ''}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Team Management</span>
-                {!hasAccess('team') && <Lock className="h-4 w-4 text-gray-400" />}
-              </CardTitle>
-              <CardDescription>
-                Manage team members and collaboration (Enterprise only)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {hasAccess('team') ? (
-                <Button className="w-full">
-                  <Users className="h-4 w-4 mr-2" />
-                  Manage Team
-                </Button>
-              ) : (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-500">Enterprise Only Feature</p>
-                  <p className="text-xs text-gray-400">$99/month - charged per team member</p>
-                  <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700" 
-                    onClick={() => handleUpgrade('enterprise')}
-                    disabled={isUpgrading}
-                  >
-                    <Crown className="h-4 w-4 mr-2" />
-                    {isUpgrading ? 'Processing...' : 'Upgrade to Enterprise'}
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Subscription Status Card for Premium/Enterprise users */}
         {subscription.tier !== 'free' && (
@@ -265,7 +172,8 @@ const Dashboard = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-green-900">
+                  <h4 className="font-medium text-green-900 flex items-center">
+                    <CheckCircle className="h-4 w-4 mr-2" />
                     {subscription.tier === 'enterprise' ? 'Enterprise' : 'Premium'} Plan Active
                   </h4>
                   <p className="text-sm text-green-700">
@@ -282,8 +190,142 @@ const Dashboard = () => {
           </Card>
         )}
 
+        {/* Feature Access Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {/* Calculator - Always available */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Meeting Calculator</span>
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              </CardTitle>
+              <CardDescription>
+                Calculate meeting costs and track efficiency
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" onClick={() => document.getElementById('calculator')?.scrollIntoView()}>
+                <Calculator className="h-4 w-4 mr-2" />
+                Use Calculator
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Analytics - Premium/Enterprise only */}
+          <Card className={!hasAccess('analytics') ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Analytics</span>
+                {hasAccess('analytics') ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-yellow-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Advanced meeting cost analytics and insights
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasAccess('analytics') ? (
+                <Button className="w-full">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  View Analytics
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-yellow-700">Requires Premium or Enterprise</p>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleUpgrade('premium')}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* AI Insights - Premium/Enterprise only */}
+          <Card className={!hasAccess('ai') ? 'opacity-60 border-yellow-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>AI Insights</span>
+                {hasAccess('ai') ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-yellow-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                AI-powered meeting optimization recommendations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasAccess('ai') ? (
+                <Button className="w-full">
+                  <Zap className="h-4 w-4 mr-2" />
+                  View AI Insights
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-yellow-700">Requires Premium or Enterprise</p>
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleUpgrade('premium')}
+                    disabled={isUpgrading}
+                  >
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Premium'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Team Management - Enterprise only */}
+          <Card className={!hasAccess('team') ? 'opacity-60 border-purple-200' : 'border-green-200'}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Team Management</span>
+                {hasAccess('team') ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Lock className="h-4 w-4 text-purple-500" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                Manage team members and collaboration (Enterprise only)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {hasAccess('team') ? (
+                <Button className="w-full">
+                  <Users className="h-4 w-4 mr-2" />
+                  Manage Team
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-sm text-purple-700 font-medium">Enterprise Only Feature</p>
+                  <p className="text-xs text-purple-600">$99/month - includes team collaboration</p>
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700" 
+                    onClick={() => handleUpgrade('enterprise')}
+                    disabled={isUpgrading}
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    {isUpgrading ? 'Processing...' : 'Upgrade to Enterprise'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Main Calculator */}
-        <MeetingCalculator />
+        <div id="calculator">
+          <MeetingCalculator />
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { ExternalLink, CheckCircle, AlertCircle, Settings, Zap, Calendar, Users, FileText, DollarSign } from "lucide-react";
+import { ExternalLink, CheckCircle, AlertCircle, Settings, Zap, Calendar, Users, FileText, DollarSign, Crown } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Integration {
   id: string;
@@ -14,9 +16,13 @@ interface Integration {
   status: 'connected' | 'available' | 'premium';
   category: 'calendar' | 'communication' | 'productivity' | 'analytics' | 'crm';
   setupGuide?: string;
+  requiredTier?: 'free' | 'premium' | 'enterprise';
 }
 
 const ThirdPartyIntegrations = () => {
+  const { subscription } = useAuth();
+  const { toast } = useToast();
+  
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
       id: 'google-calendar',
@@ -25,7 +31,8 @@ const ThirdPartyIntegrations = () => {
       icon: <Calendar className="h-5 w-5" />,
       status: 'available',
       category: 'calendar',
-      setupGuide: 'https://developers.google.com/calendar/api'
+      setupGuide: 'https://developers.google.com/calendar/api',
+      requiredTier: 'free'
     },
     {
       id: 'outlook',
@@ -33,15 +40,17 @@ const ThirdPartyIntegrations = () => {
       description: 'Import meetings from Outlook calendar',
       icon: <Calendar className="h-5 w-5" />,
       status: 'available',
-      category: 'calendar'
+      category: 'calendar',
+      requiredTier: 'free'
     },
     {
       id: 'slack',
       name: 'Slack',
       description: 'Get meeting cost notifications in Slack',
       icon: <Users className="h-5 w-5" />,
-      status: 'premium',
-      category: 'communication'
+      status: subscription.tier === 'premium' || subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'communication',
+      requiredTier: 'premium'
     },
     {
       id: 'teams',
@@ -49,39 +58,44 @@ const ThirdPartyIntegrations = () => {
       description: 'Track Teams meeting costs automatically',
       icon: <Users className="h-5 w-5" />,
       status: 'connected',
-      category: 'communication'
+      category: 'communication',
+      requiredTier: 'premium'
     },
     {
       id: 'zoom',
       name: 'Zoom',
       description: 'Monitor Zoom meeting expenses',
       icon: <Users className="h-5 w-5" />,
-      status: 'available',
-      category: 'communication'
+      status: subscription.tier === 'premium' || subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'communication',
+      requiredTier: 'premium'
     },
     {
       id: 'salesforce',
       name: 'Salesforce',
       description: 'Track client meeting costs in CRM',
       icon: <DollarSign className="h-5 w-5" />,
-      status: 'premium',
-      category: 'crm'
+      status: subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'crm',
+      requiredTier: 'enterprise'
     },
     {
       id: 'hubspot',
       name: 'HubSpot',
       description: 'Integrate meeting costs with deal tracking',
       icon: <DollarSign className="h-5 w-5" />,
-      status: 'premium',
-      category: 'crm'
+      status: subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'crm',
+      requiredTier: 'enterprise'
     },
     {
       id: 'jira',
       name: 'Jira',
       description: 'Link meeting costs to project budgets',
       icon: <FileText className="h-5 w-5" />,
-      status: 'available',
-      category: 'productivity'
+      status: subscription.tier === 'premium' || subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'productivity',
+      requiredTier: 'premium'
     },
     {
       id: 'notion',
@@ -89,15 +103,17 @@ const ThirdPartyIntegrations = () => {
       description: 'Export meeting cost reports to Notion',
       icon: <FileText className="h-5 w-5" />,
       status: 'available',
-      category: 'productivity'
+      category: 'productivity',
+      requiredTier: 'free'
     },
     {
       id: 'google-analytics',
       name: 'Google Analytics',
       description: 'Track meeting ROI with advanced analytics',
       icon: <Zap className="h-5 w-5" />,
-      status: 'premium',
-      category: 'analytics'
+      status: subscription.tier === 'enterprise' ? 'available' : 'premium',
+      category: 'analytics',
+      requiredTier: 'enterprise'
     }
   ]);
 
@@ -116,7 +132,26 @@ const ThirdPartyIntegrations = () => {
     ? integrations 
     : integrations.filter(integration => integration.category === selectedCategory);
 
+  const hasAccess = (integration: Integration) => {
+    const tierLevels = { free: 0, premium: 1, enterprise: 2 };
+    const userLevel = tierLevels[subscription.tier];
+    const requiredLevel = tierLevels[integration.requiredTier || 'free'];
+    return userLevel >= requiredLevel;
+  };
+
   const toggleIntegration = (integrationId: string) => {
+    const integration = integrations.find(i => i.id === integrationId);
+    if (!integration) return;
+
+    if (!hasAccess(integration)) {
+      toast({
+        title: "Upgrade Required",
+        description: `This integration requires ${integration.requiredTier} subscription.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIntegrations(prev => prev.map(integration => 
       integration.id === integrationId 
         ? { 
@@ -125,10 +160,46 @@ const ThirdPartyIntegrations = () => {
           }
         : integration
     ));
+
+    toast({
+      title: integration.status === 'connected' ? "Integration Disabled" : "Integration Enabled",
+      description: `${integration.name} has been ${integration.status === 'connected' ? 'disabled' : 'enabled'}.`,
+    });
   };
 
-  const getStatusBadge = (status: Integration['status']) => {
-    switch (status) {
+  const handleSetup = (integration: Integration) => {
+    if (!hasAccess(integration)) {
+      toast({
+        title: "Upgrade Required",
+        description: `This integration requires ${integration.requiredTier} subscription.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    toast({
+      title: "Setup Started",
+      description: `Setting up ${integration.name} integration...`,
+    });
+    
+    // Simulate setup process
+    setTimeout(() => {
+      setIntegrations(prev => prev.map(i => 
+        i.id === integration.id ? { ...i, status: 'connected' as const } : i
+      ));
+      toast({
+        title: "Setup Complete",
+        description: `${integration.name} has been successfully connected!`,
+      });
+    }, 2000);
+  };
+
+  const getStatusBadge = (integration: Integration) => {
+    if (!hasAccess(integration)) {
+      return <Badge className="bg-yellow-100 text-yellow-800"><Crown className="h-3 w-3 mr-1" />{integration.requiredTier}</Badge>;
+    }
+
+    switch (integration.status) {
       case 'connected':
         return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Connected</Badge>;
       case 'premium':
@@ -170,11 +241,15 @@ const ThirdPartyIntegrations = () => {
             {filteredIntegrations.map((integration) => (
               <div
                 key={integration.id}
-                className="border rounded-lg p-4 space-y-3 hover:bg-gray-50 transition-colors"
+                className={`border rounded-lg p-4 space-y-3 transition-colors ${
+                  hasAccess(integration) ? 'hover:bg-gray-50' : 'opacity-60 bg-gray-50'
+                }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
+                    <div className={`p-2 rounded-lg ${
+                      hasAccess(integration) ? 'bg-blue-100' : 'bg-gray-100'
+                    }`}>
                       {integration.icon}
                     </div>
                     <div>
@@ -182,7 +257,7 @@ const ThirdPartyIntegrations = () => {
                       <p className="text-sm text-gray-600">{integration.description}</p>
                     </div>
                   </div>
-                  {getStatusBadge(integration.status)}
+                  {getStatusBadge(integration)}
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
@@ -190,7 +265,7 @@ const ThirdPartyIntegrations = () => {
                     <Switch
                       checked={integration.status === 'connected'}
                       onCheckedChange={() => toggleIntegration(integration.id)}
-                      disabled={integration.status === 'premium'}
+                      disabled={!hasAccess(integration)}
                     />
                     <span className="text-sm text-gray-600">
                       {integration.status === 'connected' ? 'Enabled' : 'Disabled'}
@@ -198,18 +273,12 @@ const ThirdPartyIntegrations = () => {
                   </div>
 
                   <div className="flex space-x-2">
-                    {integration.status === 'premium' && (
-                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
-                        Upgrade
-                      </Button>
-                    )}
-                    
-                    {integration.status !== 'premium' && (
+                    {hasAccess(integration) ? (
                       <>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(`/integrations/${integration.id}/setup`, '_blank')}
+                          onClick={() => handleSetup(integration)}
                         >
                           <Settings className="h-3 w-3 mr-1" />
                           Setup
@@ -226,6 +295,10 @@ const ThirdPartyIntegrations = () => {
                           </Button>
                         )}
                       </>
+                    ) : (
+                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                        Upgrade to {integration.requiredTier}
+                      </Button>
                     )}
                   </div>
                 </div>

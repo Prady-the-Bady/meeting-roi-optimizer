@@ -8,14 +8,14 @@ interface GoogleAdsProps {
   adSlot?: string;
   className?: string;
   showUpgradePrompt?: boolean;
-  publisherId?: string; // Your AdSense Publisher ID
+  publisherId?: string;
 }
 
 const GoogleAds = ({ 
   adSlot = "1234567890", 
   className = "", 
   showUpgradePrompt = true,
-  publisherId = "ca-pub-1234567890123456" // Replace with your actual publisher ID
+  publisherId = "ca-pub-1234567890123456" // Replace with your actual AdSense Publisher ID
 }: GoogleAdsProps) => {
   
   useEffect(() => {
@@ -51,10 +51,10 @@ const GoogleAds = ({
         </div>
         
         {/* Real AdSense Ad */}
-        <div className="bg-white border border-yellow-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-yellow-200 rounded-lg overflow-hidden min-h-[120px] flex items-center justify-center">
           <ins 
             className="adsbygoogle"
-            style={{ display: 'block' }}
+            style={{ display: 'block', width: '100%', height: '120px' }}
             data-ad-client={publisherId}
             data-ad-slot={adSlot}
             data-ad-format="auto"

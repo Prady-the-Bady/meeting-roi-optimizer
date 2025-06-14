@@ -43,17 +43,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshSubscription = async () => {
     if (user) {
       try {
+        console.log('Refreshing subscription for user:', user.email);
         const { data, error } = await supabase.functions.invoke('check-subscription');
         
+        console.log('Subscription check response:', { data, error });
+        
         if (data && !error) {
-          setSubscription({
+          const newSubscription = {
             tier: data.subscription_tier || 'free',
             subscribed: data.subscribed || false,
             subscription_end: data.subscription_end,
+          };
+          console.log('Setting subscription:', newSubscription);
+          setSubscription(newSubscription);
+        } else {
+          console.error('Error fetching subscription:', error);
+          // Set default free tier on error
+          setSubscription({
+            tier: 'free',
+            subscribed: false,
+            subscription_end: undefined,
           });
         }
       } catch (error) {
         console.error('Error fetching subscription:', error);
+        // Set default free tier on error
+        setSubscription({
+          tier: 'free',
+          subscribed: false,
+          subscription_end: undefined,
+        });
       }
     }
   };
@@ -61,14 +80,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
 
         if (session?.user) {
+          // Delay subscription check to avoid auth state conflicts
           setTimeout(() => {
             refreshSubscription();
-          }, 0);
+          }, 100);
         } else {
           setSubscription({
             tier: 'free',
@@ -79,7 +100,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session check:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -87,7 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (session?.user) {
         setTimeout(() => {
           refreshSubscription();
-        }, 0);
+        }, 100);
       }
     });
 
