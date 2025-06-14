@@ -1,7 +1,7 @@
 
-import { Calculator, Clock, Users, DollarSign, TrendingUp } from "lucide-react";
+import { Calculator, Clock, Users, DollarSign, TrendingUp, Zap, FileBarChart } from "lucide-react";
 
-type TabType = 'calculator' | 'analytics' | 'ai' | 'team' | 'calendar' | 'premium';
+type TabType = 'calculator' | 'analytics' | 'ai' | 'team' | 'calendar' | 'integrations' | 'reports' | 'premium';
 
 interface TabNavigationProps {
   activeTab: TabType;
@@ -15,6 +15,8 @@ const TabNavigation = ({ activeTab, onTabChange }: TabNavigationProps) => {
     { id: 'ai', label: 'AI Insights', icon: <DollarSign className="h-4 w-4" /> },
     { id: 'team', label: 'Team', icon: <Users className="h-4 w-4" /> },
     { id: 'calendar', label: 'Calendar', icon: <Clock className="h-4 w-4" /> },
+    { id: 'integrations', label: 'Integrations', icon: <Zap className="h-4 w-4" /> },
+    { id: 'reports', label: 'Reports', icon: <FileBarChart className="h-4 w-4" /> },
     { id: 'premium', label: 'Premium', icon: <TrendingUp className="h-4 w-4" /> }
   ];
 

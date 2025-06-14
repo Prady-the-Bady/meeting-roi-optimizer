@@ -13,8 +13,10 @@ import TeamCollaboration from "./TeamCollaboration";
 import CalendarIntegration from "./CalendarIntegration";
 import PremiumFeatures from "./PremiumFeatures";
 import LiveInsights from "./LiveInsights";
+import ThirdPartyIntegrations from "./ThirdPartyIntegrations";
+import AdvancedReporting from "./AdvancedReporting";
 
-type TabType = 'calculator' | 'analytics' | 'ai' | 'team' | 'calendar' | 'premium';
+type TabType = 'calculator' | 'analytics' | 'ai' | 'team' | 'calendar' | 'integrations' | 'reports' | 'premium';
 
 const MeetingCalculator = () => {
   const [activeTab, setActiveTab] = useState<TabType>('calculator');
@@ -96,6 +98,14 @@ const MeetingCalculator = () => {
 
       {activeTab === 'calendar' && (
         <CalendarIntegration onMeetingImport={handleMeetingImport} />
+      )}
+
+      {activeTab === 'integrations' && (
+        <ThirdPartyIntegrations />
+      )}
+
+      {activeTab === 'reports' && (
+        <AdvancedReporting />
       )}
 
       {activeTab === 'premium' && (
