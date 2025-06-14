@@ -3,9 +3,44 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Star, Crown, Users } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const PricingSection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isUpgrading, setIsUpgrading] = useState(false);
+
+  const handleUpgrade = async (plan: 'premium' | 'enterprise') => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    setIsUpgrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { plan }
+      });
+
+      if (error) throw error;
+
+      // Open Stripe checkout in a new tab
+      window.open(data.url, '_blank');
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create checkout session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpgrading(false);
+    }
+  };
 
   return (
     <section className="py-16 bg-white">
@@ -108,9 +143,10 @@ const PricingSection = () => {
               </ul>
               <Button 
                 className="w-full bg-blue-600 hover:bg-blue-700"
-                onClick={() => navigate("/auth")}
+                onClick={() => handleUpgrade('premium')}
+                disabled={isUpgrading}
               >
-                Start Free Trial
+                {isUpgrading ? 'Processing...' : 'Start Premium Trial'}
               </Button>
             </CardContent>
           </Card>
@@ -160,10 +196,11 @@ const PricingSection = () => {
               </ul>
               <Button 
                 className="w-full bg-purple-600 hover:bg-purple-700"
-                onClick={() => navigate("/auth")}
+                onClick={() => handleUpgrade('enterprise')}
+                disabled={isUpgrading}
               >
                 <Users className="h-4 w-4 mr-2" />
-                Contact Sales
+                {isUpgrading ? 'Processing...' : 'Start Enterprise Trial'}
               </Button>
             </CardContent>
           </Card>

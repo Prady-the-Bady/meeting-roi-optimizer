@@ -43,16 +43,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const refreshSubscription = async () => {
     if (user) {
       try {
-        const { data, error } = await supabase
-          .from('subscribers')
-          .select('subscription_tier, subscribed, subscription_end')
-          .eq('user_id', user.id)
-          .single();
-
+        const { data, error } = await supabase.functions.invoke('check-subscription');
+        
         if (data && !error) {
           setSubscription({
-            tier: data.subscription_tier as 'free' | 'premium' | 'enterprise',
-            subscribed: data.subscribed,
+            tier: data.subscription_tier || 'free',
+            subscribed: data.subscribed || false,
             subscription_end: data.subscription_end,
           });
         }

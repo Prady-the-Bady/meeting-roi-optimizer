@@ -8,14 +8,34 @@ interface GoogleAdsProps {
   adSlot?: string;
   className?: string;
   showUpgradePrompt?: boolean;
+  publisherId?: string; // Your AdSense Publisher ID
 }
 
-const GoogleAds = ({ adSlot = "demo-ad-slot", className = "", showUpgradePrompt = true }: GoogleAdsProps) => {
+const GoogleAds = ({ 
+  adSlot = "1234567890", 
+  className = "", 
+  showUpgradePrompt = true,
+  publisherId = "ca-pub-1234567890123456" // Replace with your actual publisher ID
+}: GoogleAdsProps) => {
+  
   useEffect(() => {
-    // In a real implementation, you would load Google AdSense here
-    // For now, we'll show a placeholder
-    console.log('Google Ads would load here with slot:', adSlot);
-  }, [adSlot]);
+    // Load AdSense script if not already loaded
+    if (!document.querySelector('script[src*="adsbygoogle.js"]')) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`;
+      script.crossOrigin = 'anonymous';
+      document.head.appendChild(script);
+    }
+
+    // Initialize the ad after script loads
+    try {
+      // @ts-ignore
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (error) {
+      console.log('AdSense error:', error);
+    }
+  }, [publisherId]);
 
   return (
     <Card className={`bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 ${className}`}>
@@ -30,20 +50,16 @@ const GoogleAds = ({ adSlot = "demo-ad-slot", className = "", showUpgradePrompt 
           </Button>
         </div>
         
-        {/* Ad Placeholder Content */}
-        <div className="bg-white border border-yellow-200 rounded-lg p-6 text-center">
-          <div className="space-y-3">
-            <div className="w-full h-20 bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg flex items-center justify-center">
-              <span className="text-gray-600 font-medium">Google Ads Space</span>
-            </div>
-            <div className="text-sm text-gray-600">
-              <p className="font-medium">Boost Your Business Productivity</p>
-              <p>Professional meeting solutions for modern teams</p>
-            </div>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-              Learn More
-            </Button>
-          </div>
+        {/* Real AdSense Ad */}
+        <div className="bg-white border border-yellow-200 rounded-lg overflow-hidden">
+          <ins 
+            className="adsbygoogle"
+            style={{ display: 'block' }}
+            data-ad-client={publisherId}
+            data-ad-slot={adSlot}
+            data-ad-format="auto"
+            data-full-width-responsive="true"
+          />
         </div>
 
         {showUpgradePrompt && (
