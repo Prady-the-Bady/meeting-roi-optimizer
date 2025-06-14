@@ -2,279 +2,256 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ExternalLink, Zap, Slack, MessageSquare, FileText, CheckCircle, AlertCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { ExternalLink, CheckCircle, AlertCircle, Settings, Zap, Calendar, Users, FileText, DollarSign } from "lucide-react";
 
 interface Integration {
   id: string;
   name: string;
   description: string;
   icon: React.ReactNode;
-  connected: boolean;
-  webhook?: string;
+  status: 'connected' | 'available' | 'premium';
+  category: 'calendar' | 'communication' | 'productivity' | 'analytics' | 'crm';
+  setupGuide?: string;
 }
 
 const ThirdPartyIntegrations = () => {
   const [integrations, setIntegrations] = useState<Integration[]>([
     {
-      id: 'zapier',
-      name: 'Zapier',
-      description: 'Automate workflows with 5000+ apps',
-      icon: <Zap className="h-5 w-5" />,
-      connected: false,
-      webhook: ''
+      id: 'google-calendar',
+      name: 'Google Calendar',
+      description: 'Sync meetings and automatically calculate costs',
+      icon: <Calendar className="h-5 w-5" />,
+      status: 'available',
+      category: 'calendar',
+      setupGuide: 'https://developers.google.com/calendar/api'
+    },
+    {
+      id: 'outlook',
+      name: 'Microsoft Outlook',
+      description: 'Import meetings from Outlook calendar',
+      icon: <Calendar className="h-5 w-5" />,
+      status: 'available',
+      category: 'calendar'
     },
     {
       id: 'slack',
       name: 'Slack',
-      description: 'Send meeting summaries to channels',
-      icon: <Slack className="h-5 w-5" />,
-      connected: false,
-      webhook: ''
+      description: 'Get meeting cost notifications in Slack',
+      icon: <Users className="h-5 w-5" />,
+      status: 'premium',
+      category: 'communication'
     },
     {
       id: 'teams',
       name: 'Microsoft Teams',
-      description: 'Post cost alerts to Teams channels',
-      icon: <MessageSquare className="h-5 w-5" />,
-      connected: false,
-      webhook: ''
+      description: 'Track Teams meeting costs automatically',
+      icon: <Users className="h-5 w-5" />,
+      status: 'connected',
+      category: 'communication'
+    },
+    {
+      id: 'zoom',
+      name: 'Zoom',
+      description: 'Monitor Zoom meeting expenses',
+      icon: <Users className="h-5 w-5" />,
+      status: 'available',
+      category: 'communication'
+    },
+    {
+      id: 'salesforce',
+      name: 'Salesforce',
+      description: 'Track client meeting costs in CRM',
+      icon: <DollarSign className="h-5 w-5" />,
+      status: 'premium',
+      category: 'crm'
+    },
+    {
+      id: 'hubspot',
+      name: 'HubSpot',
+      description: 'Integrate meeting costs with deal tracking',
+      icon: <DollarSign className="h-5 w-5" />,
+      status: 'premium',
+      category: 'crm'
+    },
+    {
+      id: 'jira',
+      name: 'Jira',
+      description: 'Link meeting costs to project budgets',
+      icon: <FileText className="h-5 w-5" />,
+      status: 'available',
+      category: 'productivity'
     },
     {
       id: 'notion',
       name: 'Notion',
-      description: 'Save meeting data to Notion pages',
+      description: 'Export meeting cost reports to Notion',
       icon: <FileText className="h-5 w-5" />,
-      connected: false,
-      webhook: ''
+      status: 'available',
+      category: 'productivity'
+    },
+    {
+      id: 'google-analytics',
+      name: 'Google Analytics',
+      description: 'Track meeting ROI with advanced analytics',
+      icon: <Zap className="h-5 w-5" />,
+      status: 'premium',
+      category: 'analytics'
     }
   ]);
 
-  const { toast } = useToast();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const updateIntegration = (id: string, updates: Partial<Integration>) => {
+  const categories = [
+    { id: 'all', name: 'All Integrations' },
+    { id: 'calendar', name: 'Calendar' },
+    { id: 'communication', name: 'Communication' },
+    { id: 'productivity', name: 'Productivity' },
+    { id: 'analytics', name: 'Analytics' },
+    { id: 'crm', name: 'CRM' }
+  ];
+
+  const filteredIntegrations = selectedCategory === 'all' 
+    ? integrations 
+    : integrations.filter(integration => integration.category === selectedCategory);
+
+  const toggleIntegration = (integrationId: string) => {
     setIntegrations(prev => prev.map(integration => 
-      integration.id === id ? { ...integration, ...updates } : integration
+      integration.id === integrationId 
+        ? { 
+            ...integration, 
+            status: integration.status === 'connected' ? 'available' : 'connected' 
+          }
+        : integration
     ));
   };
 
-  const testWebhook = async (integration: Integration) => {
-    if (!integration.webhook) {
-      toast({
-        title: "Error",
-        description: "Please enter a webhook URL first",
-        variant: "destructive",
-      });
-      return;
+  const getStatusBadge = (status: Integration['status']) => {
+    switch (status) {
+      case 'connected':
+        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Connected</Badge>;
+      case 'premium':
+        return <Badge className="bg-yellow-100 text-yellow-800"><DollarSign className="h-3 w-3 mr-1" />Premium</Badge>;
+      default:
+        return <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />Available</Badge>;
     }
-
-    try {
-      await fetch(integration.webhook, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        mode: "no-cors",
-        body: JSON.stringify({
-          test: true,
-          timestamp: new Date().toISOString(),
-          message: `Test webhook from Meeting Cost Calculator - ${integration.name} integration`
-        }),
-      });
-
-      toast({
-        title: "Webhook Test Sent",
-        description: `Test webhook sent to ${integration.name}. Check your integration to confirm it was received.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Webhook Test Failed",
-        description: "Failed to send test webhook. Please check the URL and try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const toggleIntegration = (id: string) => {
-    const integration = integrations.find(i => i.id === id);
-    if (!integration) return;
-
-    if (!integration.connected && !integration.webhook) {
-      toast({
-        title: "Webhook Required",
-        description: "Please enter a webhook URL before enabling the integration.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateIntegration(id, { connected: !integration.connected });
-    
-    toast({
-      title: integration.connected ? "Integration Disabled" : "Integration Enabled",
-      description: `${integration.name} integration has been ${integration.connected ? 'disabled' : 'enabled'}.`,
-    });
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Third-Party Integrations</h2>
-        <p className="text-gray-600">Connect your meeting data with your favorite tools and workflows.</p>
-      </div>
-
-      <Tabs defaultValue="webhooks" className="w-full">
-        <TabsList>
-          <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-          <TabsTrigger value="api">API Access</TabsTrigger>
-          <TabsTrigger value="automation">Automation Rules</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="webhooks" className="space-y-4">
-          <div className="grid gap-4">
-            {integrations.map((integration) => (
-              <Card key={integration.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {integration.icon}
-                      <div>
-                        <CardTitle className="text-lg">{integration.name}</CardTitle>
-                        <CardDescription>{integration.description}</CardDescription>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {integration.connected ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <AlertCircle className="h-5 w-5 text-gray-400" />
-                      )}
-                      <Switch
-                        checked={integration.connected}
-                        onCheckedChange={() => toggleIntegration(integration.id)}
-                      />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor={`webhook-${integration.id}`}>Webhook URL</Label>
-                      <Input
-                        id={`webhook-${integration.id}`}
-                        placeholder={`Enter your ${integration.name} webhook URL`}
-                        value={integration.webhook || ''}
-                        onChange={(e) => updateIntegration(integration.id, { webhook: e.target.value })}
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => testWebhook(integration)}
-                        disabled={!integration.webhook}
-                      >
-                        Test Webhook
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(`https://zapier.com/apps/${integration.id}/integrations`, '_blank')}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-1" />
-                        Setup Guide
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Zap className="h-5 w-5 mr-2" />
+          Third-Party Integrations
+        </CardTitle>
+        <CardDescription>
+          Connect your favorite tools to automate meeting cost tracking and enhance productivity insights
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-6">
+          {/* Category Filter */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <Button
+                key={category.id}
+                variant={selectedCategory === category.id ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(category.id)}
+              >
+                {category.name}
+              </Button>
             ))}
           </div>
-        </TabsContent>
 
-        <TabsContent value="api" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>API Access</CardTitle>
-              <CardDescription>Generate API keys to access meeting data programmatically</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label>API Endpoint</Label>
-                  <Input value="https://api.meetingcalculator.com/v1/" readOnly />
+          {/* Integrations Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredIntegrations.map((integration) => (
+              <div
+                key={integration.id}
+                className="border rounded-lg p-4 space-y-3 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      {integration.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-medium">{integration.name}</h4>
+                      <p className="text-sm text-gray-600">{integration.description}</p>
+                    </div>
+                  </div>
+                  {getStatusBadge(integration.status)}
                 </div>
-                <div>
-                  <Label>API Key</Label>
+
+                <div className="flex items-center justify-between pt-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      checked={integration.status === 'connected'}
+                      onCheckedChange={() => toggleIntegration(integration.id)}
+                      disabled={integration.status === 'premium'}
+                    />
+                    <span className="text-sm text-gray-600">
+                      {integration.status === 'connected' ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+
                   <div className="flex space-x-2">
-                    <Input value="••••••••••••••••••••••••••••••••" readOnly />
-                    <Button variant="outline">Generate New</Button>
+                    {integration.status === 'premium' && (
+                      <Button size="sm" className="bg-yellow-600 hover:bg-yellow-700">
+                        Upgrade
+                      </Button>
+                    )}
+                    
+                    {integration.status !== 'premium' && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/integrations/${integration.id}/setup`, '_blank')}
+                        >
+                          <Settings className="h-3 w-3 mr-1" />
+                          Setup
+                        </Button>
+                        
+                        {integration.setupGuide && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => window.open(integration.setupGuide, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            Guide
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">Available Endpoints</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• GET /meetings - List all meetings</li>
-                    <li>• POST /meetings - Create new meeting</li>
-                    <li>• GET /meetings/{id} - Get meeting details</li>
-                    <li>• GET /analytics - Get cost analytics</li>
-                  </ul>
-                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            ))}
+          </div>
 
-        <TabsContent value="automation" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Automation Rules</CardTitle>
-              <CardDescription>Set up automatic notifications and actions based on meeting costs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">High Cost Alert</h4>
-                    <Switch defaultChecked />
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Send notification when meeting cost exceeds $500
-                  </p>
-                  <Button variant="outline" size="sm">Configure</Button>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">Weekly Summary</h4>
-                    <Switch />
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Send weekly meeting cost summary every Friday
-                  </p>
-                  <Button variant="outline" size="sm">Configure</Button>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">Long Meeting Alert</h4>
-                    <Switch />
-                  </div>
-                  <p className="text-sm text-gray-600 mb-2">
-                    Alert when meeting exceeds 60 minutes
-                  </p>
-                  <Button variant="outline" size="sm">Configure</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+          {filteredIntegrations.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No integrations found for this category.
+            </div>
+          )}
+
+          {/* Integration Benefits */}
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-900 mb-2">Why Connect Integrations?</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• Automatically import meeting data from your calendar</li>
+              <li>• Get real-time cost notifications in your communication tools</li>
+              <li>• Sync meeting costs with your project management and CRM systems</li>
+              <li>• Generate comprehensive reports across all your tools</li>
+            </ul>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

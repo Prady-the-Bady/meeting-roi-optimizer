@@ -1,13 +1,33 @@
 
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calculator, TrendingUp, Users, Clock, CheckCircle, Star } from "lucide-react";
-import MeetingCalculator from "@/components/MeetingCalculator";
 import HeroSection from "@/components/HeroSection";
 import FeaturesSection from "@/components/FeaturesSection";
 import PricingSection from "@/components/PricingSection";
+import GoogleAds from "@/components/GoogleAds";
 
 const Index = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/dashboard");
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Calculator className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white">
       {/* Navigation */}
@@ -18,26 +38,94 @@ const Index = () => {
             <span className="text-2xl font-bold text-gray-900">MeetingROI Pro</span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="ghost">Login</Button>
-            <Button className="bg-blue-600 hover:bg-blue-700">Get Started Free</Button>
+            <Button variant="ghost" onClick={() => navigate("/auth")}>
+              Login
+            </Button>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate("/auth")}
+            >
+              Get Started Free
+            </Button>
           </div>
         </div>
       </nav>
 
       <HeroSection />
       
-      {/* Meeting Calculator Section */}
+      {/* Google Ads for demo purposes */}
+      <section className="py-8 bg-gray-50">
+        <div className="container mx-auto px-4">
+          <GoogleAds className="max-w-4xl mx-auto" />
+        </div>
+      </section>
+
+      {/* Meeting Calculator Preview Section */}
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Calculate Your Meeting Costs in Real-Time
+              See Your Meeting Costs in Real-Time
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              See exactly how much your meetings cost and get instant insights on optimization
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              Get instant insights on meeting expenses and optimization opportunities
             </p>
+            <Button 
+              size="lg" 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate("/auth")}
+            >
+              Start Free Trial
+            </Button>
           </div>
-          <MeetingCalculator />
+          
+          {/* Calculator Preview */}
+          <div className="max-w-4xl mx-auto">
+            <Card className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 rounded-lg"></div>
+              <CardHeader className="relative">
+                <CardTitle className="text-center">Meeting Cost Calculator</CardTitle>
+                <CardDescription className="text-center">
+                  Track costs automatically with our advanced calculator
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="relative">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                  <div>
+                    <div className="bg-blue-100 p-4 rounded-lg mb-3">
+                      <Clock className="h-8 w-8 text-blue-600 mx-auto" />
+                    </div>
+                    <h4 className="font-semibold">Real-time Tracking</h4>
+                    <p className="text-sm text-gray-600">Monitor costs as meetings progress</p>
+                  </div>
+                  <div>
+                    <div className="bg-green-100 p-4 rounded-lg mb-3">
+                      <TrendingUp className="h-8 w-8 text-green-600 mx-auto" />
+                    </div>
+                    <h4 className="font-semibold">Advanced Analytics</h4>
+                    <p className="text-sm text-gray-600">Detailed insights and trends</p>
+                  </div>
+                  <div>
+                    <div className="bg-purple-100 p-4 rounded-lg mb-3">
+                      <Users className="h-8 w-8 text-purple-600 mx-auto" />
+                    </div>
+                    <h4 className="font-semibold">Team Collaboration</h4>
+                    <p className="text-sm text-gray-600">Enterprise team management</p>
+                  </div>
+                </div>
+                
+                <div className="mt-8 text-center">
+                  <Button 
+                    size="lg" 
+                    className="bg-blue-600 hover:bg-blue-700"
+                    onClick={() => navigate("/auth")}
+                  >
+                    Access Full Calculator
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
@@ -53,7 +141,11 @@ const Index = () => {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of companies saving millions on unproductive meetings
           </p>
-          <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100">
+          <Button 
+            size="lg" 
+            className="bg-white text-blue-600 hover:bg-gray-100"
+            onClick={() => navigate("/auth")}
+          >
             Start Free Trial
           </Button>
         </div>
