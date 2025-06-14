@@ -24,23 +24,25 @@ interface IntegrationsSectionProps {
 }
 
 export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: IntegrationsSectionProps) {
-  const { subscription } = useAuth();
+  const { subscription, user, connectGoogle } = useAuth();
   const { toast } = useToast();
   
-  const [integrations, setIntegrations] = useState<Integration[]>([
+  const isGoogleConnected = user?.app_metadata?.providers?.includes('google');
+
+  const integrations: Integration[] = [
     {
       id: 'google-calendar',
       name: 'Google Calendar',
       description: 'Sync meetings and automatically calculate costs',
       icon: <Calendar className="h-5 w-5" />,
-      status: 'available',
+      status: isGoogleConnected ? 'connected' : 'available',
       category: 'calendar',
       requiredTier: 'free'
     },
     {
       id: 'outlook',
       name: 'Microsoft Outlook',
-      description: 'Import meetings from Outlook calendar',
+      description: 'Import meetings from Outlook calendar (Coming Soon)',
       icon: <Calendar className="h-5 w-5" />,
       status: 'available',
       category: 'calendar',
@@ -60,7 +62,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
       name: 'Microsoft Teams',
       description: 'Track Teams meeting costs automatically',
       icon: <Users className="h-5 w-5" />,
-      status: 'connected',
+      status: 'available', // Hardcoded as available for now
       category: 'communication',
       requiredTier: 'premium'
     },
@@ -82,7 +84,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
       category: 'crm',
       requiredTier: 'enterprise'
     }
-  ]);
+  ];
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
@@ -106,42 +108,33 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
     return userLevel >= requiredLevel;
   };
 
-  const toggleIntegration = (integrationId: string) => {
-    const integration = integrations.find(i => i.id === integrationId);
-    if (!integration) return;
-
+  const handleToggle = async (integration: Integration) => {
     if (!hasAccess(integration)) {
-      toast({
-        title: "Upgrade Required",
-        description: `This integration requires ${integration.requiredTier} subscription.`,
-        variant: "destructive",
-      });
+      toast({ title: "Upgrade Required", variant: "destructive", description: `This integration requires a ${integration.requiredTier} subscription.`});
       return;
     }
 
-    setIntegrations(prev => prev.map(integration => 
-      integration.id === integrationId 
-        ? { 
-            ...integration, 
-            status: integration.status === 'connected' ? 'available' : 'connected' 
-          }
-        : integration
-    ));
-
-    toast({
-      title: integration.status === 'connected' ? "Integration Disabled" : "Integration Enabled",
-      description: `${integration.name} has been ${integration.status === 'connected' ? 'disabled' : 'enabled'}.`,
-    });
+    if (integration.id === 'google-calendar') {
+      if (!isGoogleConnected) {
+        await connectGoogle();
+      } else {
+        // Disconnect logic would go here. For now, we'll just show a toast.
+        toast({ title: "Disconnection not implemented", description: "Please manage connections from your Google Account settings." });
+      }
+    } else {
+      toast({ title: "Coming Soon", description: `Toggling ${integration.name} is not yet available.` });
+    }
   };
 
-  const handleSetupClick = (integration: Integration) => {
+  const handleSetupClick = async (integration: Integration) => {
     if (!hasAccess(integration)) return;
 
-    if (integration.category === 'calendar') {
-      if (integration.status !== 'connected') {
-        toggleIntegration(integration.id);
+    if (integration.id === 'google-calendar') {
+      if (isGoogleConnected) {
+        onNavigate('calendar');
+      } else {
+        await connectGoogle();
       }
-      onNavigate('calendar');
     } else {
       toast({
         title: "Setup Not Implemented",
@@ -226,7 +219,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
                     <div className="flex items-center space-x-2">
                       <Switch
                         checked={integration.status === 'connected'}
-                        onCheckedChange={() => toggleIntegration(integration.id)}
+                        onCheckedChange={() => handleToggle(integration)}
                         disabled={!hasAccess(integration)}
                       />
                       <span className="text-sm text-gray-600">

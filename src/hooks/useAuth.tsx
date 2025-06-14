@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +16,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   loading: boolean;
   refreshSubscription: () => Promise<void>;
+  connectGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -177,6 +177,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+  const connectGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        scopes: 'https://www.googleapis.com/auth/calendar.readonly',
+        redirectTo: window.location.href, // Redirect back to current page
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Connection Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const value = {
     user,
     session,
@@ -186,6 +204,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     signOut,
     loading,
     refreshSubscription,
+    connectGoogle,
   };
 
   return (
