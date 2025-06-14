@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -265,7 +266,12 @@ const MeetingCalculator = () => {
       )}
 
       {activeTab === 'analytics' && (
-        <MeetingAnalytics meetingData={meetingData} />
+        <MeetingAnalytics 
+          duration={meetingData.duration}
+          totalCost={calculateCost()}
+          participants={meetingData.participants}
+          meetingType={meetingData.type}
+        />
       )}
 
       {activeTab === 'ai' && (
