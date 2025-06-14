@@ -48,7 +48,7 @@ const MeetingForm = ({
       <CardHeader>
         <CardTitle className="flex items-center">
           <Calculator className="h-5 w-5 mr-2 text-blue-600" />
-          Meeting Cost Calculator - Phase 4
+          Meeting Cost Calculator
         </CardTitle>
         <CardDescription>
           Calculate the true cost of your meetings with customizable rates and advanced features

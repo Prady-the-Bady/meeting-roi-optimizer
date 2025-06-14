@@ -35,7 +35,7 @@ const CostDisplay = ({ cost }: CostDisplayProps) => {
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center">
             <DollarSign className="h-5 w-5 mr-2 text-blue-600" />
-            Meeting Cost - Phase 4
+            Meeting Cost
           </span>
           <TrendingUp className={`h-4 w-4 ${getCostColor(cost)}`} />
         </CardTitle>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "./MeetingForm";
@@ -156,8 +155,8 @@ const MeetingCalculator = () => {
     setCostHistory([]);
     
     toast({
-      title: "🚀 Phase 4 Timer Started",
-      description: `Meeting "${meetingData.title}" cost tracking has begun with enhanced features.`,
+      title: "🚀 Timer Started",
+      description: `Meeting "${meetingData.title}" cost tracking has begun.`,
     });
   };
 
@@ -184,9 +183,8 @@ const MeetingCalculator = () => {
       setTimerRunning(false);
       setStartTime(null);
       
-      // Phase 4 enhanced completion toast
       toast({
-        title: "✅ Meeting Completed - Phase 4",
+        title: "✅ Meeting Completed",
         description: `Total cost: $${finalCost.toFixed(2)} | Duration: ${Math.round(durationInSeconds/60)} min | Efficiency: ${getEfficiencyRating(finalCost, durationInSeconds)}`,
       });
     }
@@ -204,8 +202,8 @@ const MeetingCalculator = () => {
     setMeetingData(importedMeeting);
     setActiveTab('calculator');
     toast({
-      title: "📥 Meeting Imported - Phase 4",
-      description: "Meeting data has been imported with enhanced processing capabilities.",
+      title: "📥 Meeting Imported",
+      description: "Meeting data has been imported successfully.",
     });
   };
 
@@ -229,10 +227,10 @@ const MeetingCalculator = () => {
             <CostDisplay cost={meetingData.totalCost} />
             <ExportPanel meetingData={meetingData} />
             
-            {/* Phase 4 Enhancement: Real-time insights */}
+            {/* Real-time insights */}
             {timerRunning && costHistory.length > 10 && (
               <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Phase 4 - Live Insights</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">Live Insights</h3>
                 <div className="text-sm space-y-1">
                   <p>💰 Cost trend: {costHistory[costHistory.length-1] > costHistory[0] ? '📈 Increasing' : '📉 Stable'}</p>
                   <p>⚡ Efficiency: {getEfficiencyRating(meetingData.totalCost, meetingData.duration)}</p>
