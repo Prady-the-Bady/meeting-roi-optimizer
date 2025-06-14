@@ -10,11 +10,11 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { OverviewSection } from "@/components/sections/OverviewSection";
-import { AnalyticsSection } from "@/components/sections/AnalyticsSection";
-import { AIInsightsSection } from "@/components/sections/AIInsightsSection";
-import { IntegrationsSection } from "@/components/sections/IntegrationsSection";
-import { MeetingHistorySection } from "@/components/sections/MeetingHistorySection";
-import { TeamManagementSection } from "@/components/sections/TeamManagementSection";
+import AnalyticsSection from "@/components/sections/AnalyticsSection";
+import AIInsightsSection from "@/components/sections/AIInsightsSection";
+import IntegrationsSection from "@/components/sections/IntegrationsSection";
+import MeetingHistorySection from "@/components/sections/MeetingHistorySection";
+import TeamManagementSection from "@/components/sections/TeamManagementSection";
 import PremiumFeatures from "@/components/PremiumFeatures";
 import CalendarIntegration from "@/components/CalendarIntegration";
 
