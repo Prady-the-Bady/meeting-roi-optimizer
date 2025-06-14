@@ -1,8 +1,9 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { ExternalLink, CheckCircle, AlertCircle, Settings, Zap, Calendar, Users, FileText, DollarSign, Crown } from "lucide-react";
+import { ExternalLink, CheckCircle, AlertCircle, Settings, Zap, Calendar, Users, FileText, DollarSign, Crown, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -14,7 +15,7 @@ interface Integration {
   icon: React.ReactNode;
   status: 'connected' | 'available' | 'premium';
   category: 'calendar' | 'communication' | 'productivity' | 'analytics' | 'crm';
-  requiredTier?: 'free' | 'premium' | 'enterprise';
+  requiredTier: 'free' | 'premium' | 'enterprise';
 }
 
 interface IntegrationsSectionProps {
@@ -27,8 +28,9 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
   const { subscription, user, connectGoogle, connectMicrosoft } = useAuth();
   const { toast } = useToast();
   
-  const isGoogleConnected = user?.app_metadata?.providers?.includes('google');
-  const isMicrosoftConnected = user?.app_metadata?.providers?.includes('azure');
+  // Security: Properly check auth providers
+  const isGoogleConnected = user?.app_metadata?.providers?.includes('google') || false;
+  const isMicrosoftConnected = user?.app_metadata?.providers?.includes('azure') || false;
 
   const integrations: Integration[] = [
     {
@@ -38,7 +40,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
       icon: <Calendar className="h-5 w-5" />,
       status: isGoogleConnected ? 'connected' : 'available',
       category: 'calendar',
-      requiredTier: 'free'
+      requiredTier: 'premium'
     },
     {
       id: 'outlook',
@@ -47,7 +49,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
       icon: <Calendar className="h-5 w-5" />,
       status: isMicrosoftConnected ? 'connected' : 'available',
       category: 'calendar',
-      requiredTier: 'free'
+      requiredTier: 'premium'
     },
     {
       id: 'slack',
@@ -63,7 +65,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
       name: 'Microsoft Teams',
       description: 'Track Teams meeting costs automatically',
       icon: <Users className="h-5 w-5" />,
-      status: 'available', // Hardcoded as available for now
+      status: subscription.tier === 'premium' || subscription.tier === 'enterprise' ? 'available' : 'premium',
       category: 'communication',
       requiredTier: 'premium'
     },
@@ -111,47 +113,110 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
 
   const handleToggle = async (integration: Integration) => {
     if (!hasAccess(integration)) {
-      toast({ title: "Upgrade Required", variant: "destructive", description: `This integration requires a ${integration.requiredTier} subscription.`});
+      toast({ 
+        title: "Upgrade Required", 
+        variant: "destructive", 
+        description: `This integration requires a ${integration.requiredTier} subscription.`
+      });
+      return;
+    }
+
+    // Security: Validate user is authenticated
+    if (!user) {
+      toast({ 
+        title: "Authentication Required", 
+        variant: "destructive", 
+        description: "Please sign in to manage integrations."
+      });
       return;
     }
 
     if (integration.id === 'google-calendar') {
       if (!isGoogleConnected) {
-        await connectGoogle();
+        try {
+          await connectGoogle();
+        } catch (error) {
+          toast({ 
+            title: "Connection Failed", 
+            variant: "destructive", 
+            description: "Failed to connect to Google Calendar. Please try again."
+          });
+        }
       } else {
-        // Disconnect logic would go here. For now, we'll just show a toast.
-        toast({ title: "Disconnection not implemented", description: "Please manage connections from your Google Account settings." });
+        toast({ 
+          title: "Disconnection not implemented", 
+          description: "Please manage connections from your Google Account settings." 
+        });
       }
     } else if (integration.id === 'outlook') {
       if (!isMicrosoftConnected) {
-        await connectMicrosoft();
+        try {
+          await connectMicrosoft();
+        } catch (error) {
+          toast({ 
+            title: "Connection Failed", 
+            variant: "destructive", 
+            description: "Failed to connect to Microsoft Outlook. Please try again."
+          });
+        }
       } else {
-        // Disconnect logic would go here. For now, we'll just show a toast.
-        toast({ title: "Disconnection not implemented", description: "Please manage connections from your Microsoft Account settings." });
+        toast({ 
+          title: "Disconnection not implemented", 
+          description: "Please manage connections from your Microsoft Account settings." 
+        });
       }
     } else {
-      toast({ title: "Coming Soon", description: `Toggling ${integration.name} is not yet available.` });
+      toast({ 
+        title: "Coming Soon", 
+        description: `${integration.name} integration is coming soon.` 
+      });
     }
   };
 
   const handleSetupClick = async (integration: Integration) => {
     if (!hasAccess(integration)) return;
 
+    // Security: Validate user is authenticated
+    if (!user) {
+      toast({ 
+        title: "Authentication Required", 
+        variant: "destructive", 
+        description: "Please sign in to setup integrations."
+      });
+      return;
+    }
+
     if (integration.id === 'google-calendar') {
       if (isGoogleConnected) {
         onNavigate('calendar');
       } else {
-        await connectGoogle();
+        try {
+          await connectGoogle();
+        } catch (error) {
+          toast({ 
+            title: "Setup Failed", 
+            variant: "destructive", 
+            description: "Failed to setup Google Calendar integration."
+          });
+        }
       }
     } else if (integration.id === 'outlook') {
       if (isMicrosoftConnected) {
         onNavigate('calendar');
       } else {
-        await connectMicrosoft();
+        try {
+          await connectMicrosoft();
+        } catch (error) {
+          toast({ 
+            title: "Setup Failed", 
+            variant: "destructive", 
+            description: "Failed to setup Microsoft Outlook integration."
+          });
+        }
       }
     } else {
       toast({
-        title: "Setup Not Implemented",
+        title: "Setup Not Available",
         description: `Setup for ${integration.name} is coming soon.`,
       });
     }
@@ -159,18 +224,96 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
 
   const getStatusBadge = (integration: Integration) => {
     if (!hasAccess(integration)) {
-      return <Badge className="bg-yellow-100 text-yellow-800"><Crown className="h-3 w-3 mr-1" />{integration.requiredTier}</Badge>;
+      return (
+        <Badge className="bg-yellow-100 text-yellow-800">
+          <Crown className="h-3 w-3 mr-1" />
+          {integration.requiredTier}
+        </Badge>
+      );
     }
 
     switch (integration.status) {
       case 'connected':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Connected</Badge>;
+        return (
+          <Badge className="bg-green-100 text-green-800">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Connected
+          </Badge>
+        );
       case 'premium':
-        return <Badge className="bg-yellow-100 text-yellow-800"><DollarSign className="h-3 w-3 mr-1" />Premium</Badge>;
+        return (
+          <Badge className="bg-yellow-100 text-yellow-800">
+            <Lock className="h-3 w-3 mr-1" />
+            Premium
+          </Badge>
+        );
       default:
-        return <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />Available</Badge>;
+        return (
+          <Badge variant="outline">
+            <AlertCircle className="h-3 w-3 mr-1" />
+            Available
+          </Badge>
+        );
     }
   };
+
+  if (subscription.tier === 'free') {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Integrations</h1>
+          <p className="text-gray-600 mt-2">Connect your favorite tools to automate meeting cost tracking</p>
+        </div>
+
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-8">
+            <div className="text-center">
+              <Lock className="h-16 w-16 mx-auto text-blue-400 mb-4" />
+              <h3 className="text-xl font-semibold mb-4 flex items-center justify-center">
+                <Crown className="h-5 w-5 mr-2 text-blue-600" />
+                Premium Integrations
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Upgrade to Premium to connect with your favorite tools and automate meeting cost tracking.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <Calendar className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <h4 className="font-medium mb-2">Calendar Integration</h4>
+                  <p className="text-sm text-gray-600">Google Calendar & Microsoft Outlook sync</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <Users className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <h4 className="font-medium mb-2">Communication Tools</h4>
+                  <p className="text-sm text-gray-600">Slack, Teams, and Zoom notifications</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <DollarSign className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <h4 className="font-medium mb-2">CRM Integration</h4>
+                  <p className="text-sm text-gray-600">Salesforce meeting cost tracking</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-blue-200">
+                  <Zap className="h-8 w-8 text-blue-600 mx-auto mb-2" />
+                  <h4 className="font-medium mb-2">Automation</h4>
+                  <p className="text-sm text-gray-600">Automated cost calculations and reports</p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={() => onUpgrade('premium')}
+                disabled={isUpgrading}
+                className="bg-blue-600 hover:bg-blue-700"
+                size="lg"
+              >
+                {isUpgrading ? 'Processing...' : 'Upgrade to Premium - $29/month'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
