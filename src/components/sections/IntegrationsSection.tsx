@@ -24,10 +24,11 @@ interface IntegrationsSectionProps {
 }
 
 export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: IntegrationsSectionProps) {
-  const { subscription, user, connectGoogle } = useAuth();
+  const { subscription, user, connectGoogle, connectMicrosoft } = useAuth();
   const { toast } = useToast();
   
   const isGoogleConnected = user?.app_metadata?.providers?.includes('google');
+  const isMicrosoftConnected = user?.app_metadata?.providers?.includes('azure');
 
   const integrations: Integration[] = [
     {
@@ -42,9 +43,9 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
     {
       id: 'outlook',
       name: 'Microsoft Outlook',
-      description: 'Import meetings from Outlook calendar (Coming Soon)',
+      description: 'Import meetings from Outlook calendar',
       icon: <Calendar className="h-5 w-5" />,
-      status: 'available',
+      status: isMicrosoftConnected ? 'connected' : 'available',
       category: 'calendar',
       requiredTier: 'free'
     },
@@ -121,6 +122,13 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
         // Disconnect logic would go here. For now, we'll just show a toast.
         toast({ title: "Disconnection not implemented", description: "Please manage connections from your Google Account settings." });
       }
+    } else if (integration.id === 'outlook') {
+      if (!isMicrosoftConnected) {
+        await connectMicrosoft();
+      } else {
+        // Disconnect logic would go here. For now, we'll just show a toast.
+        toast({ title: "Disconnection not implemented", description: "Please manage connections from your Microsoft Account settings." });
+      }
     } else {
       toast({ title: "Coming Soon", description: `Toggling ${integration.name} is not yet available.` });
     }
@@ -134,6 +142,12 @@ export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: Inte
         onNavigate('calendar');
       } else {
         await connectGoogle();
+      }
+    } else if (integration.id === 'outlook') {
+      if (isMicrosoftConnected) {
+        onNavigate('calendar');
+      } else {
+        await connectMicrosoft();
       }
     } else {
       toast({

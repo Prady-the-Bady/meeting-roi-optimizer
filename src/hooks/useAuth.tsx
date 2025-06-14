@@ -17,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   refreshSubscription: () => Promise<void>;
   connectGoogle: () => Promise<void>;
+  connectMicrosoft: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -183,6 +184,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       options: {
         scopes: 'https://www.googleapis.com/auth/calendar.readonly',
         redirectTo: window.location.href, // Redirect back to current page
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+
+    if (error) {
+      toast({
+        title: "Connection Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const connectMicrosoft = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'azure',
+      options: {
+        scopes: 'openid profile email offline_access Calendars.Read',
+        redirectTo: window.location.href,
       },
     });
 
@@ -205,6 +228,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     refreshSubscription,
     connectGoogle,
+    connectMicrosoft,
   };
 
   return (

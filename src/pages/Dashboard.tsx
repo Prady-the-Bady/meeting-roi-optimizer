@@ -179,11 +179,7 @@ const Dashboard = () => {
               <h1 className="text-3xl font-bold text-gray-900">Calendar Integration</h1>
               <p className="text-gray-600 mt-2">Sync with Google Calendar, Outlook, and more</p>
             </div>
-            {subscription.tier !== 'free' ? (
-              <CalendarIntegration />
-            ) : (
-              <PremiumFeatures />
-            )}
+            <CalendarIntegration onMeetingImport={() => { /* Placeholder for future use */ }} />
           </div>
         );
       case "integrations":
