@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -140,6 +139,7 @@ const Dashboard = () => {
             onUpgrade={handleUpgrade}
             onManageSubscription={handleManageSubscription}
             isUpgrading={isUpgrading}
+            onNavigate={setActiveSection}
           />
         );
       case "calculator":

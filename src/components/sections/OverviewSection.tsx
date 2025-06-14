@@ -22,9 +22,10 @@ interface OverviewSectionProps {
   onUpgrade: (plan: 'premium' | 'enterprise') => void;
   onManageSubscription: () => void;
   isUpgrading: boolean;
+  onNavigate?: (section: string) => void;
 }
 
-export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading }: OverviewSectionProps) {
+export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, onNavigate }: OverviewSectionProps) {
   const { subscription } = useAuth();
 
   const getSubscriptionBadge = () => {
@@ -35,6 +36,18 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading }
         return <Badge className="bg-purple-100 text-purple-800 border-purple-200"><Star className="h-3 w-3 mr-1" />Enterprise</Badge>;
       default:
         return <Badge variant="secondary">Free Plan</Badge>;
+    }
+  };
+
+  const handleCalculatorClick = () => {
+    if (onNavigate) {
+      onNavigate('calculator');
+    }
+  };
+
+  const handleAnalyticsClick = () => {
+    if (onNavigate) {
+      onNavigate('analytics');
     }
   };
 
@@ -142,7 +155,7 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading }
           <CardContent className="space-y-4">
             <Button 
               className="w-full justify-start bg-blue-600 hover:bg-blue-700 text-left h-14 text-base shadow-sm"
-              onClick={() => {/* Navigate to calculator */}}
+              onClick={handleCalculatorClick}
             >
               <Calculator className="h-5 w-5 mr-3" />
               <div className="flex flex-col items-start">
@@ -155,7 +168,7 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading }
             <Button 
               variant="outline" 
               className="w-full justify-start h-14 text-base border-gray-200 hover:bg-gray-50"
-              onClick={() => {/* Navigate to analytics */}}
+              onClick={handleAnalyticsClick}
             >
               <BarChart3 className="h-5 w-5 mr-3" />
               <div className="flex flex-col items-start">
