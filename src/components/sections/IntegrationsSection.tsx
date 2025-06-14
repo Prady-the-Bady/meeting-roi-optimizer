@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,9 +20,10 @@ interface Integration {
 interface IntegrationsSectionProps {
   onUpgrade: (plan: 'premium' | 'enterprise') => void;
   isUpgrading: boolean;
+  onNavigate: (section: string) => void;
 }
 
-export function IntegrationsSection({ onUpgrade, isUpgrading }: IntegrationsSectionProps) {
+export function IntegrationsSection({ onUpgrade, isUpgrading, onNavigate }: IntegrationsSectionProps) {
   const { subscription } = useAuth();
   const { toast } = useToast();
   
@@ -134,6 +134,22 @@ export function IntegrationsSection({ onUpgrade, isUpgrading }: IntegrationsSect
     });
   };
 
+  const handleSetupClick = (integration: Integration) => {
+    if (!hasAccess(integration)) return;
+
+    if (integration.category === 'calendar') {
+      if (integration.status !== 'connected') {
+        toggleIntegration(integration.id);
+      }
+      onNavigate('calendar');
+    } else {
+      toast({
+        title: "Setup Not Implemented",
+        description: `Setup for ${integration.name} is coming soon.`,
+      });
+    }
+  };
+
   const getStatusBadge = (integration: Integration) => {
     if (!hasAccess(integration)) {
       return <Badge className="bg-yellow-100 text-yellow-800"><Crown className="h-3 w-3 mr-1" />{integration.requiredTier}</Badge>;
@@ -220,7 +236,7 @@ export function IntegrationsSection({ onUpgrade, isUpgrading }: IntegrationsSect
 
                     <div className="flex space-x-2">
                       {hasAccess(integration) ? (
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleSetupClick(integration)}>
                           <Settings className="h-3 w-3 mr-1" />
                           Setup
                         </Button>

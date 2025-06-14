@@ -15,6 +15,7 @@ import { IntegrationsSection } from "@/components/sections/IntegrationsSection";
 import { MeetingHistorySection } from "@/components/sections/MeetingHistorySection";
 import { TeamManagementSection } from "@/components/sections/TeamManagementSection";
 import PremiumFeatures from "@/components/PremiumFeatures";
+import CalendarIntegration from "@/components/CalendarIntegration";
 
 const Dashboard = () => {
   const { user, subscription, signOut, loading, refreshSubscription } = useAuth();
@@ -179,9 +180,7 @@ const Dashboard = () => {
               <p className="text-gray-600 mt-2">Sync with Google Calendar, Outlook, and more</p>
             </div>
             {subscription.tier !== 'free' ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Calendar integration features coming soon!</p>
-              </div>
+              <CalendarIntegration />
             ) : (
               <PremiumFeatures />
             )}
@@ -192,6 +191,7 @@ const Dashboard = () => {
           <IntegrationsSection 
             onUpgrade={handleUpgrade}
             isUpgrading={isUpgrading}
+            onNavigate={setActiveSection}
           />
         );
       case "reports":
