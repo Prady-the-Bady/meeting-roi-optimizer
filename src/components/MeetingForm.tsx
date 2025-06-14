@@ -35,6 +35,13 @@ const MeetingForm = ({
   onPauseTimer,
   onStopTimer
 }: MeetingFormProps) => {
+  const formatDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -62,9 +69,9 @@ const MeetingForm = ({
 
           <div>
             <Label htmlFor="type">Meeting Type</Label>
-            <Select onValueChange={(value) => onSelectChange(value, "type")}>
+            <Select value={meetingData.type} onValueChange={(value) => onSelectChange(value, "type")}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a type" defaultValue={meetingData.type} />
+                <SelectValue placeholder="Select a type" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="brainstorming">Brainstorming</SelectItem>
@@ -86,6 +93,7 @@ const MeetingForm = ({
                 id="participants"
                 name="participants"
                 placeholder="5"
+                min="1"
                 value={meetingData.participants}
                 onChange={onInputChange}
               />
@@ -93,9 +101,9 @@ const MeetingForm = ({
 
             <div>
               <Label htmlFor="costMethod">Cost Method</Label>
-              <Select onValueChange={(value) => onSelectChange(value, "costMethod")}>
+              <Select value={meetingData.costMethod} onValueChange={(value) => onSelectChange(value, "costMethod")}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a method" defaultValue={meetingData.costMethod} />
+                  <SelectValue placeholder="Select a method" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="salary-based">Salary Based</SelectItem>
@@ -112,11 +120,12 @@ const MeetingForm = ({
               <Input
                 type="text"
                 placeholder="00:00:00"
-                value={new Date(meetingData.duration * 1000).toISOString().slice(11, 19)}
+                value={formatDuration(meetingData.duration)}
                 readOnly
+                className={timerRunning ? "bg-green-50 border-green-300" : ""}
               />
               {!timerRunning && (
-                <Button onClick={onStartTimer} disabled={timerRunning}>
+                <Button onClick={onStartTimer}>
                   <Play className="h-4 w-4 mr-2" />
                   Start
                 </Button>
@@ -132,6 +141,9 @@ const MeetingForm = ({
                 Stop
               </Button>
             </div>
+            {timerRunning && (
+              <p className="text-sm text-green-600 mt-1">Timer is running - cost is being calculated in real-time</p>
+            )}
           </div>
         </div>
       </CardContent>

@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import MeetingForm from "./MeetingForm";
 import CostDisplay from "./CostDisplay";
@@ -34,7 +34,7 @@ const MeetingCalculator = () => {
     timestamp: new Date(),
   });
 
-  const [hourlyRates, setHourlyRates] = useState({
+  const [hourlyRates] = useState({
     "ceo": 200,
     "manager": 100,
     "developer": 80,
@@ -48,11 +48,31 @@ const MeetingCalculator = () => {
   const [activeTab, setActiveTab] = useState<TabType>('calculator');
   const { toast } = useToast();
 
+  // Timer effect to update duration in real-time
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (timerRunning && startTime) {
+      interval = setInterval(() => {
+        const now = new Date();
+        const durationInSeconds = (now.getTime() - startTime.getTime()) / 1000;
+        setMeetingData(prev => ({
+          ...prev,
+          duration: durationInSeconds,
+        }));
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [timerRunning, startTime]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setMeetingData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: name === 'participants' ? parseInt(value) || 1 : value,
     }));
   };
 
@@ -65,12 +85,17 @@ const MeetingCalculator = () => {
 
   const calculateCost = () => {
     let cost = 0;
+    const hours = meetingData.duration / 3600;
+    
     if (meetingData.costMethod === "salary-based") {
-      cost = (80 * (meetingData.duration / 3600) * meetingData.participants);
+      cost = 80 * hours * meetingData.participants;
     } else if (meetingData.costMethod === "fixed-rate") {
-      cost = 50 * meetingData.participants;
+      cost = 50 * meetingData.participants * hours;
     } else if (meetingData.costMethod === "role-based") {
-      cost = (hourlyRates["ceo"] * 0.1 + hourlyRates["manager"] * 0.2 + hourlyRates["developer"] * 0.3 + hourlyRates["designer"] * 0.1 + hourlyRates["analyst"] * 0.2 + hourlyRates["intern"] * 0.1) * (meetingData.duration / 3600);
+      const avgRate = (hourlyRates.ceo * 0.1 + hourlyRates.manager * 0.2 + 
+                      hourlyRates.developer * 0.3 + hourlyRates.designer * 0.1 + 
+                      hourlyRates.analyst * 0.2 + hourlyRates.intern * 0.1);
+      cost = avgRate * hours * meetingData.participants;
     }
     return cost;
   };
@@ -78,10 +103,18 @@ const MeetingCalculator = () => {
   const startTimer = () => {
     setTimerRunning(true);
     setStartTime(new Date());
+    toast({
+      title: "Timer Started",
+      description: "Meeting cost calculation has begun.",
+    });
   };
 
   const pauseTimer = () => {
     setTimerRunning(false);
+    toast({
+      title: "Timer Paused",
+      description: "Meeting timer has been paused.",
+    });
   };
 
   const stopTimer = () => {
@@ -95,6 +128,10 @@ const MeetingCalculator = () => {
       }));
       setTimerRunning(false);
       setStartTime(null);
+      toast({
+        title: "Timer Stopped",
+        description: `Meeting completed. Total cost: $${calculateCost().toFixed(2)}`,
+      });
     }
   };
 
@@ -106,6 +143,8 @@ const MeetingCalculator = () => {
       description: "Meeting data has been imported from your calendar.",
     });
   };
+
+  const currentCost = calculateCost();
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -124,7 +163,7 @@ const MeetingCalculator = () => {
           />
           
           <div className="space-y-6">
-            <CostDisplay cost={calculateCost()} />
+            <CostDisplay cost={currentCost} />
             <ExportPanel meetingData={meetingData} />
           </div>
         </div>
@@ -133,7 +172,7 @@ const MeetingCalculator = () => {
       {activeTab === 'analytics' && (
         <MeetingAnalytics 
           duration={meetingData.duration}
-          totalCost={calculateCost()}
+          totalCost={currentCost}
           participants={meetingData.participants}
           meetingType={meetingData.type}
         />
