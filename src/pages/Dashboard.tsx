@@ -16,6 +16,7 @@ import MeetingHistorySection from "@/components/sections/MeetingHistorySection";
 import TeamManagementSection from "@/components/sections/TeamManagementSection";
 import PremiumFeatures from "@/components/PremiumFeatures";
 import CalendarIntegration from "@/components/CalendarIntegration";
+import AdvancedReporting from "@/components/AdvancedReporting";
 
 const Dashboard = () => {
   const { user, subscription, signOut, loading, refreshSubscription } = useAuth();
@@ -198,13 +199,7 @@ const Dashboard = () => {
               <h1 className="text-3xl font-bold text-gray-900">Advanced Reports</h1>
               <p className="text-gray-600 mt-2">Detailed reporting and data exports</p>
             </div>
-            {subscription.tier !== 'free' ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">Advanced reporting features coming soon!</p>
-              </div>
-            ) : (
-              <PremiumFeatures />
-            )}
+            <AdvancedReporting />
           </div>
         );
       case "history":

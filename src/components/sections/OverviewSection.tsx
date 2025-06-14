@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,10 +16,14 @@ import {
   Target,
   Sparkles,
   Eye,
-  FileText
+  FileText,
+  TrendingDown
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import GoogleAds from "@/components/GoogleAds";
 
 interface OverviewSectionProps {
   onUpgrade: (plan: 'premium' | 'enterprise') => void;
@@ -28,8 +33,18 @@ interface OverviewSectionProps {
 }
 
 export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, onNavigate }: OverviewSectionProps) {
-  const { subscription } = useAuth();
+  const { subscription, user } = useAuth();
   const { toast } = useToast();
+
+  const { data: userMetrics, isLoading } = useQuery({
+    queryKey: ['user-metrics', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-user-metrics');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const getSubscriptionBadge = () => {
     switch (subscription.tier) {
@@ -71,6 +86,58 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatTime = (hours: number) => {
+    return `${Math.round(hours)} hours`;
+  };
+
+  const formatChange = (change: number) => {
+    const isPositive = change > 0;
+    const Icon = isPositive ? TrendingUp : TrendingDown;
+    const color = isPositive ? "text-green-600" : "text-red-600";
+    
+    return (
+      <p className={`text-xs ${color} flex items-center mt-1`}>
+        <Icon className="h-3 w-3 mr-1" />
+        {Math.abs(change).toFixed(1)}% from last month
+      </p>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="animate-pulse bg-gray-200 h-32 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const metrics = userMetrics?.thisMonth || {
+    cost: 0,
+    costChange: 0,
+    meetings: 0,
+    meetingChange: 0,
+    totalHours: 0,
+    efficiency: 0,
+    potentialSavings: 0
+  };
+
+  const recentMeetings = userMetrics?.recentMeetings || [];
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -93,11 +160,8 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-blue-700">This Month</p>
-                <p className="text-2xl font-bold text-blue-900">$2,450</p>
-                <p className="text-xs text-blue-600 flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +12% from last month
-                </p>
+                <p className="text-2xl font-bold text-blue-900">{formatCurrency(metrics.cost)}</p>
+                {formatChange(metrics.costChange)}
               </div>
               <div className="h-12 w-12 bg-blue-200 rounded-full flex items-center justify-center">
                 <DollarSign className="h-6 w-6 text-blue-700" />
@@ -111,10 +175,10 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-green-700">Meetings</p>
-                <p className="text-2xl font-bold text-green-900">47</p>
+                <p className="text-2xl font-bold text-green-900">{metrics.meetings}</p>
                 <p className="text-xs text-green-600 flex items-center mt-1">
                   <Clock className="h-3 w-3 mr-1" />
-                  86 hours total
+                  {formatTime(metrics.totalHours)} total
                 </p>
               </div>
               <div className="h-12 w-12 bg-green-200 rounded-full flex items-center justify-center">
@@ -129,10 +193,10 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-purple-700">Efficiency</p>
-                <p className="text-2xl font-bold text-purple-900">78%</p>
+                <p className="text-2xl font-bold text-purple-900">{metrics.efficiency}%</p>
                 <p className="text-xs text-purple-600 flex items-center mt-1">
                   <Target className="h-3 w-3 mr-1" />
-                  Above average
+                  {metrics.efficiency >= 70 ? 'Above average' : 'Room for improvement'}
                 </p>
               </div>
               <div className="h-12 w-12 bg-purple-200 rounded-full flex items-center justify-center">
@@ -147,7 +211,7 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-orange-700">Savings</p>
-                <p className="text-2xl font-bold text-orange-900">$340</p>
+                <p className="text-2xl font-bold text-orange-900">{formatCurrency(metrics.potentialSavings)}</p>
                 <p className="text-xs text-orange-600 flex items-center mt-1">
                   <Sparkles className="h-3 w-3 mr-1" />
                   Potential this month
@@ -222,34 +286,49 @@ export function OverviewSection({ onUpgrade, onManageSubscription, isUpgrading, 
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: "Product Planning", cost: "$420", time: "2 hours ago", participants: 8, id: "1" },
-                { name: "Daily Standup", cost: "$85", time: "1 day ago", participants: 6, id: "2" },
-                { name: "Client Review", cost: "$340", time: "3 days ago", participants: 4, id: "3" },
-              ].map((meeting, index) => (
-                <div 
-                  key={meeting.id} 
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group"
-                  onClick={() => handleMeetingClick(meeting.name)}
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900 group-hover:text-blue-900">{meeting.name}</p>
-                    <p className="text-sm text-gray-500">{meeting.time} • {meeting.participants} participants</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">{meeting.cost}</p>
+              {recentMeetings.length > 0 ? (
+                recentMeetings.map((meeting) => (
+                  <div 
+                    key={meeting.id} 
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-blue-50 transition-colors cursor-pointer group"
+                    onClick={() => handleMeetingClick(meeting.title)}
+                  >
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900 group-hover:text-blue-900">{meeting.title}</p>
+                      <p className="text-sm text-gray-500">
+                        {new Date(meeting.created_at).toLocaleDateString()} • {meeting.participants} participants
+                      </p>
                     </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Eye className="h-4 w-4 text-blue-600" />
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-semibold text-gray-900">{formatCurrency(Number(meeting.total_cost))}</p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Eye className="h-4 w-4 text-blue-600" />
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Calculator className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No meetings recorded yet</p>
+                  <p className="text-sm">Start your first meeting calculation!</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* AdSense Integration for Free Users */}
+      {subscription.tier === 'free' && (
+        <GoogleAds
+          showUpgradePrompt={true}
+          onUpgradeClick={() => onUpgrade('premium')}
+          className="my-6"
+        />
+      )}
 
       {/* Upgrade Section for Free Users */}
       {subscription.tier === 'free' && (
