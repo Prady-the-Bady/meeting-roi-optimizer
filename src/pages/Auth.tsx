@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -119,7 +118,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label>Verification</Label>
                     <HCaptcha
-                      sitekey="6LcMM2ErAAAAADS60hriLiZaS1-VsHWjgvgI2YjA"
+                      sitekey="fcea7f74-88fc-4e8c-a0aa-c700c8c6f5b0"
                       onVerify={handleCaptchaVerify}
                       onExpire={handleCaptchaExpire}
                     />
@@ -174,7 +173,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label>Verification</Label>
                     <HCaptcha
-                      sitekey="6LcMM2ErAAAAADS60hriLiZaS1-VsHWjgvgI2YjA"
+                      sitekey="fcea7f74-88fc-4e8c-a0aa-c700c8c6f5b0"
                       onVerify={handleCaptchaVerify}
                       onExpire={handleCaptchaExpire}
                     />
