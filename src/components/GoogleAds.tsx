@@ -33,7 +33,7 @@ const GoogleAds = ({
           // @ts-ignore
           (window.adsbygoogle = window.adsbygoogle || []).push({});
         } catch (error) {
-          console.log('AdSense initialization error:', error);
+          console.error('AdSense initialization error:', error);
         }
       };
       document.head.appendChild(script);
@@ -43,7 +43,7 @@ const GoogleAds = ({
         // @ts-ignore
         (window.adsbygoogle = window.adsbygoogle || []).push({});
       } catch (error) {
-        console.log('AdSense error:', error);
+        console.error('AdSense error:', error);
       }
     }
   }, [publisherId]);
