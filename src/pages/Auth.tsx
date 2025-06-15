@@ -119,7 +119,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label>Verification</Label>
                     <HCaptcha
-                      sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // This is a test key, replace with your actual site key
+                      sitekey="6LcMM2ErAAAAADS60hriLiZaS1-VsHWjgvgI2YjA"
                       onVerify={handleCaptchaVerify}
                       onExpire={handleCaptchaExpire}
                     />
@@ -174,7 +174,7 @@ const Auth = () => {
                   <div className="space-y-2">
                     <Label>Verification</Label>
                     <HCaptcha
-                      sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" // This is a test key, replace with your actual site key
+                      sitekey="6LcMM2ErAAAAADS60hriLiZaS1-VsHWjgvgI2YjA"
                       onVerify={handleCaptchaVerify}
                       onExpire={handleCaptchaExpire}
                     />
