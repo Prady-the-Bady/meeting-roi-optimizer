@@ -16,7 +16,7 @@ const GoogleAds = ({
   adSlot = "5858753720", 
   className = "", 
   showUpgradePrompt = true,
-  publisherId = "ca-pub-1117144804884445",
+  publisherId = "ca-pub-3940256099942544", // Using Google's test ID for reliable testing
   onUpgradeClick
 }: GoogleAdsProps) => {
   
@@ -46,7 +46,7 @@ const GoogleAds = ({
         console.error('AdSense error:', error);
       }
     }
-  }, [publisherId]);
+  }, [publisherId, adSlot]); // Re-run effect if publisherId or adSlot change
 
   const handleUpgradeClick = () => {
     if (onUpgradeClick) {
