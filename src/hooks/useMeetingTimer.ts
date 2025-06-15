@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -69,14 +68,30 @@ export const useMeetingTimer = ({ meetingData, setMeetingData, calculateCostFrom
       return;
     }
 
+    // A null startTime indicates a fresh start (initial or after a stop).
+    const isFreshStart = startTime === null;
+
     setTimerRunning(true);
-    setStartTime(new Date());
-    setCostHistory([]);
-    
-    toast({
-      title: "🚀 Timer Started",
-      description: `Meeting "${meetingData.title}" cost tracking has begun.`,
-    });
+
+    if (isFreshStart) {
+      // For a new timer, reset duration, cost, and history.
+      setMeetingData(prev => ({ ...prev, duration: 0, totalCost: 0 }));
+      setCostHistory([]);
+      setStartTime(new Date());
+      toast({
+        title: "🚀 Timer Started",
+        description: `Meeting "${meetingData.title}" cost tracking has begun.`,
+      });
+    } else {
+      // For resuming, adjust the start time based on the already elapsed duration.
+      const now = new Date();
+      const adjustedStartTime = new Date(now.getTime() - (meetingData.duration * 1000));
+      setStartTime(adjustedStartTime);
+      toast({
+        title: "▶️ Timer Resumed",
+        description: `Meeting "${meetingData.title}" cost tracking has resumed.`,
+      });
+    }
   };
 
   const pauseTimer = () => {

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -149,13 +148,12 @@ const MeetingForm = ({
                 readOnly
                 className={timerRunning ? "bg-green-50 border-green-300 text-green-700 font-medium" : ""}
               />
-              {!timerRunning && (
+              {!timerRunning ? (
                 <Button onClick={onStartTimer} className="bg-green-600 hover:bg-green-700">
                   <Play className="h-4 w-4 mr-2" />
-                  Start
+                  {meetingData.duration > 0 ? "Resume" : "Start"}
                 </Button>
-              )}
-              {timerRunning && (
+              ) : (
                 <Button onClick={onPauseTimer} variant="secondary" className="bg-orange-100 hover:bg-orange-200">
                   <Pause className="h-4 w-4 mr-2" />
                   Pause
